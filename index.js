@@ -120,6 +120,7 @@ class StreamActivity {
             console.log('[StreamActivity]', `Update current activity: watching ${displayChannel.display_name}.`);
         } else {
             console.log('[StreamActivity]', 'Cleared current activity.');
+
             this.discordClient.user.setActivity(null);
         }
     }
