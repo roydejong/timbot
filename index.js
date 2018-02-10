@@ -17,8 +17,14 @@ let syncServerList = (logMembership) => {
         if (!targetChannel) {
             console.warn('[Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${config.discord_announce_channel} channel!`);
         } else {
+            let permissions = targetChannel.permissionsFor(guild.me);
+
             if (logMembership) {
                 console.log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
+            }
+
+            if (!permissions.has("SEND_MESSAGES")) {
+                console.warn('[Discord]', 'Permission problem /!\\', `I do not have SEND_MESSAGES permission on channel #${targetChannel.name} on ${guild.name}: announcement sends will fail.`);
             }
 
             nextTargetChannels.push(targetChannel);
