@@ -6,17 +6,48 @@ const TwitchMonitor = require("./twitch-monitor");
 
 console.log('Timbot is starting.');
 
-let targetChannel = null;
+let targetChannels = [];
+
+let syncServerList = (logMembership) => {
+    let nextTargetChannels = [];
+
+    client.guilds.forEach((guild) => {
+        let targetChannel = guild.channels.find("name", config.discord_announce_channel);
+
+        if (!targetChannel) {
+            console.warn('[Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${config.discord_announce_channel} channel!`);
+        }
+
+        if (logMembership) {
+            console.log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
+        }
+
+        nextTargetChannels.push(targetChannel);
+    });
+
+    console.log('[Discord]', `Discovered ${nextTargetChannels.length} channels to announce to.`);
+    targetChannels = nextTargetChannels;
+};
 
 client.on('ready', () => {
-    console.log('[Discord]', 'Bot has logged in, and is now online.');
-    targetChannel = client.channels.find("name", config.discord_channel);
+    console.log('[Discord]', `Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
+
+    syncServerList(true);
+});
+
+client.on("guildCreate", guild => {
+    console.log(`[Discord]`, `Joined new server: ${guild.name}`);
+
+    syncServerList(false);
+});
+
+client.on("guildDelete", guild => {
+    console.log(`[Discord]`, `Removed from a server: ${guild.name}`);
+
+    syncServerList(false);
 });
 
 client.on('message', message => {
-    if (!targetChannel) {
-        targetChannel = message.guild.channels.find("name", config.discord_channel);
-    }
 
     if (message.content === '!timbot') {
         message.reply(':timMrBones:');
@@ -38,10 +69,22 @@ const formatLiveMessage = function (channelData, streamData) {
 // Start twitch monitor
 TwitchMonitor.start();
 TwitchMonitor.onChannelLiveUpdate((channelData) => {
-    if (!targetChannel) {
-        return false;
+    let msgFormatted = formatLiveMessage(channelData);
+    let anySent = false;
+
+    for (let i = 0; i < targetChannels.length; i++) {
+        let targetChannel = targetChannels[i];
+
+        if (targetChannel) {
+            try {
+                targetChannel.send(msgFormatted);
+                anySent = true;
+                console.log('[Discord]', `Sent announce msg to #${targetChannel.name} on ${targetChannel.guild.name}`);
+            } catch (e) {
+                console.warn('[Discord]', 'Message send problem:', e);
+            }
+        }
     }
 
-    targetChannel.send(formatLiveMessage(channelData));
-    return true;
+    return anySent;
 });
