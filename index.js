@@ -10,10 +10,6 @@ let targetChannel = null;
 
 client.on('ready', () => {
     console.log('[Discord]', 'Bot has logged in, and is now online.');
-
-    client.user.setStatus("online");
-    client.user.setActivity({game: {name: "test 123", type: 0}});
-
     targetChannel = client.channels.find("name", config.discord_channel);
 });
 
