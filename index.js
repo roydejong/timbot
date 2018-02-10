@@ -16,13 +16,13 @@ let syncServerList = (logMembership) => {
 
         if (!targetChannel) {
             console.warn('[Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${config.discord_announce_channel} channel!`);
-        }
+        } else {
+            if (logMembership) {
+                console.log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
+            }
 
-        if (logMembership) {
-            console.log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
+            nextTargetChannels.push(targetChannel);
         }
-
-        nextTargetChannels.push(targetChannel);
     });
 
     console.log('[Discord]', `Discovered ${nextTargetChannels.length} channels to announce to.`);
