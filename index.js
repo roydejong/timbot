@@ -38,7 +38,14 @@ let syncServerList = (logMembership) => {
 client.on('ready', () => {
     console.log('[Discord]', `Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
 
+    // Init list of connected servers, and determine which channels we are announcing to
     syncServerList(true);
+
+    // Keep our activity in the user list in sync
+    StreamActivity.init(client);
+
+    // Begin Twitch API polling
+    TwitchMonitor.start();
 });
 
 client.on("guildCreate", guild => {
@@ -54,7 +61,6 @@ client.on("guildDelete", guild => {
 });
 
 client.on('message', message => {
-
     if (message.content === '!timbot') {
         message.reply(':timMrBones:');
     }
@@ -62,6 +68,74 @@ client.on('message', message => {
 
 console.log('[Discord]', 'Logging in...');
 client.login(config.bot_token);
+
+// Activity updater
+class StreamActivity {
+    /**
+     * Registers a channel that has come online, and updates the user activity.
+     */
+    static setChannelOnline(channel) {
+        this.onlineChannels[channel.name] = channel;
+
+        this.updateActivity();
+    }
+
+    /**
+     * Marks a channel has having gone offline, and updates the user activity if needed.
+     */
+    static setChannelOffline(channel) {
+        delete this.onlineChannels[channel.name];
+
+        this.updateActivity();
+    }
+
+    /**
+     * Fetches the channel that went online most recently, and is still currently online.
+     */
+    static getDisplayChannel() {
+        let lastChannel = null;
+
+        for (let channelName in this.onlineChannels) {
+            if (typeof channelName !== "undefined" && channelName) {
+                lastChannel = this.onlineChannels[channelName];
+            }
+        }
+
+        return lastChannel;
+    }
+
+    /**
+     * Updates the user activity on Discord.
+     * Either clears the activity if no channels are online, or sets it to "watching" if a stream is up.
+     */
+    static updateActivity() {
+        let displayChannel = this.getDisplayChannel();
+
+        if (displayChannel) {
+            this.discordClient.user.setActivity(displayChannel.display_name, {
+                "url": displayChannel.url,
+                "type": "STREAMING"
+            });
+
+            console.log('[StreamActivity]', `Update current activity: watching ${displayChannel.display_name}.`);
+        } else {
+            console.log('[StreamActivity]', 'Cleared current activity.');
+            this.discordClient.user.setActivity(null);
+        }
+    }
+
+    static init(discordClient) {
+        this.discordClient = discordClient;
+        this.onlineChannels = { };
+
+        this.updateActivity();
+
+        // Continue to update current stream activity every 5 minutes or so
+        // We need to do this b/c Discord sometimes refuses to update for some reason
+        // ...maybe this will help, hopefully
+        setInterval(this.updateActivity.bind(this), 5 * 60 * 1000);
+    }
+}
 
 // Message helper
 const formatLiveMessage = function (channelData, streamData) {
@@ -72,9 +146,12 @@ const formatLiveMessage = function (channelData, streamData) {
     return formattedMessage;
 };
 
-// Start twitch monitor
-TwitchMonitor.start();
+// Listen to Twitch monitor events
 TwitchMonitor.onChannelLiveUpdate((channelData) => {
+    // Update activity
+    StreamActivity.setChannelOnline(channelData);
+
+    // Broadcast to all target channels
     let msgFormatted = formatLiveMessage(channelData);
     let anySent = false;
 
@@ -93,4 +170,9 @@ TwitchMonitor.onChannelLiveUpdate((channelData) => {
     }
 
     return anySent;
+});
+
+TwitchMonitor.onChannelOffline((channelData) => {
+    // Update activity
+    StreamActivity.setChannelOffline(channelData);
 });

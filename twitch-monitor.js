@@ -85,7 +85,7 @@ class TwitchMonitor {
                 // Stream was not in the list before
                 console.log('[TwitchMonitor]', 'Stream channel has gone online:', _chanName);
 
-                if (!this.handleChannelLiveUpdate(this.channelData[_chanName])) {
+                if (!this.handleChannelLiveUpdate(this.channelData[_chanName], this.streamData[_chanName])) {
                     notifyFailed = true;
                 }
 
@@ -100,7 +100,7 @@ class TwitchMonitor {
             if (nextOnlineList.indexOf(_chanName) === -1) {
                 // Stream was in the list before, but no longer
                 console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
-
+                this.handleChannelOffline(this.channelData[_chanName]);
                 anyChanges = true;
             }
         }
@@ -134,8 +134,26 @@ class TwitchMonitor {
         return true;
     }
 
+    static handleChannelOffline(channelObj) {
+        for (let i = 0; i < this.channelOfflineCallbacks.length; i++) {
+            let _callback = this.channelOfflineCallbacks[i];
+
+            if (_callback) {
+                if (_callback(channelObj) === false) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     static onChannelLiveUpdate(callback) {
         this.channelLiveCallbacks.push(callback);
+    }
+
+    static onChannelOffline(callback) {
+        this.channelOfflineCallbacks.push(callback);
     }
 }
 
@@ -143,7 +161,9 @@ TwitchMonitor.eventBufferStartTime = 0;
 TwitchMonitor.activeStreams = [];
 TwitchMonitor.channelData = { };
 TwitchMonitor.streamData = { };
+
 TwitchMonitor.channelLiveCallbacks = [];
+TwitchMonitor.channelOfflineCallbacks = [];
 
 TwitchMonitor.EVENT_BUFFER_MS = 2 * 60 * 1000;
 
