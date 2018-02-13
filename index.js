@@ -138,22 +138,49 @@ class StreamActivity {
     }
 }
 
-// Message helper
-const formatLiveMessage = function (channelData, streamData) {
-    let formattedMessage = `🔴 **${channelData.display_name} is live on Twitch**.` + "\r\n";
-    formattedMessage += `${channelData.url}` + "\r\n";
-    formattedMessage += `\`${channelData.status}\``;
-
-    return formattedMessage;
-};
-
 // Listen to Twitch monitor events
-TwitchMonitor.onChannelLiveUpdate((channelData) => {
+let oldMsgs = { };
+
+TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
+    try {
+        // Refresh channel list
+        syncServerList(false);
+    } catch (e) { }
+
     // Update activity
     StreamActivity.setChannelOnline(channelData);
 
     // Broadcast to all target channels
-    let msgFormatted = formatLiveMessage(channelData);
+    let mentionMode = null;
+
+    if (channelData.name.toLowerCase() === "monotonetim") {
+        mentionMode = "everyone";
+    } else if (channelData.name.toLowerCase() === "stereotonetim") {
+        mentionMode = "here";
+    }
+
+    let msgFormatted = `${channelData.display_name} went live on Twitch!`;
+
+    if (mentionMode) {
+        msgFormatted += ` @${mentionMode}`
+    }
+
+    let msgEmbed = new Discord.MessageEmbed({
+        description: `:red_circle: **${channelData.display_name} is currently live on Twitch!**`,
+        title: channelData.url,
+        url: channelData.url
+    });
+
+    msgEmbed.setColor(isOnline ? "RED" : "GREY");
+    msgEmbed.setThumbnail(streamData.preview.large);
+    msgEmbed.addField("Game", streamData.game || "(No game)", true);
+    msgEmbed.addField("Status", isOnline ? `Live for ${streamData.viewers} viewers` : 'Stream has now ended', true);
+    msgEmbed.setFooter(channelData.status, channelData.logo);
+
+    if (!isOnline) {
+        msgEmbed.setDescription(`:white_circle:  ${channelData.display_name} was live on Twitch.`);
+    }
+
     let anySent = false;
 
     for (let i = 0; i < targetChannels.length; i++) {
@@ -161,9 +188,27 @@ TwitchMonitor.onChannelLiveUpdate((channelData) => {
 
         if (targetChannel) {
             try {
-                targetChannel.send(msgFormatted);
+                // Either send a new message, or update an old one
+                let messageDiscriminator = `${targetChannel.guild.name}_${targetChannel.name}_${channelData.name}_${streamData.created_at}`;
+                let existingMessage = oldMsgs[messageDiscriminator] || null;
+
+                if (existingMessage) {
+                    existingMessage.edit(msgFormatted, {
+                        embed: msgEmbed
+                    }).then((message) => {
+                        console.log('[Discord]', `Updated announce msg in #${targetChannel.name} on ${targetChannel.guild.name}`);
+                    });
+                } else {
+                    targetChannel.send(msgFormatted, {
+                        embed: msgEmbed
+                    })
+                    .then((message) => {
+                        oldMsgs[messageDiscriminator] = message;
+                        console.log('[Discord]', `Sent announce msg to #${targetChannel.name} on ${targetChannel.guild.name}`);
+                    });
+                }
+
                 anySent = true;
-                console.log('[Discord]', `Sent announce msg to #${targetChannel.name} on ${targetChannel.guild.name}`);
             } catch (e) {
                 console.warn('[Discord]', 'Message send problem:', e);
             }

@@ -12,9 +12,9 @@ class TwitchMonitor {
         // Check interval
         let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
 
-        if (isNaN(checkIntervalMs) || checkIntervalMs <= 2500) {
-            // Cap request limit to 2500ms
-            checkIntervalMs = 2500;
+        if (isNaN(checkIntervalMs) || checkIntervalMs <= 30 * 1000) {
+            // Cap request limit to 30 secs
+            checkIntervalMs = 30 * 1000;
         }
 
         setInterval(() => {
@@ -84,12 +84,11 @@ class TwitchMonitor {
             if (this.activeStreams.indexOf(_chanName) === -1) {
                 // Stream was not in the list before
                 console.log('[TwitchMonitor]', 'Stream channel has gone online:', _chanName);
-
-                if (!this.handleChannelLiveUpdate(this.channelData[_chanName], this.streamData[_chanName])) {
-                    notifyFailed = true;
-                }
-
                 anyChanges = true;
+            }
+
+            if (!this.handleChannelLiveUpdate(this.channelData[_chanName], this.streamData[_chanName], true)) {
+                notifyFailed = true;
             }
         }
 
@@ -100,7 +99,7 @@ class TwitchMonitor {
             if (nextOnlineList.indexOf(_chanName) === -1) {
                 // Stream was in the list before, but no longer
                 console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
-                this.handleChannelOffline(this.channelData[_chanName]);
+                this.handleChannelOffline(this.channelData[_chanName], this.streamData[_chanName]);
                 anyChanges = true;
             }
         }
@@ -120,12 +119,12 @@ class TwitchMonitor {
         }
     }
 
-    static handleChannelLiveUpdate(channelObj, streamObj) {
+    static handleChannelLiveUpdate(channelObj, streamObj, isOnline) {
         for (let i = 0; i < this.channelLiveCallbacks.length; i++) {
             let _callback = this.channelLiveCallbacks[i];
 
             if (_callback) {
-                if (_callback(channelObj, streamObj) === false) {
+                if (_callback(channelObj, streamObj, isOnline) === false) {
                     return false;
                 }
             }
@@ -134,7 +133,9 @@ class TwitchMonitor {
         return true;
     }
 
-    static handleChannelOffline(channelObj) {
+    static handleChannelOffline(channelObj, streamObj) {
+        this.handleChannelLiveUpdate(channelObj, streamObj, false);
+
         for (let i = 0; i < this.channelOfflineCallbacks.length; i++) {
             let _callback = this.channelOfflineCallbacks[i];
 
