@@ -18,6 +18,11 @@ https://nodejs.org/en/download/
 To set up timbot, download the latest [repository ZIP](https://github.com/roydejong/timbot/archive/master.zip) or clone it using `git`:
 
     git clone git@github.com:roydejong/timbot.git
+    
+Once installed, enter the directory and install the dependencies:
+
+    cd timbot
+    npm install
    
 ### Configuration
  
