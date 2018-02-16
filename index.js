@@ -187,8 +187,17 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
                     }).then((message) => {
                         console.log('[Discord]', `Updated announce msg in #${targetChannel.name} on ${targetChannel.guild.name}`);
                     });
+
+                    if (!isOnline) {
+                        // Mem cleanup: If channel just went offline, delete the entry in the message list
+                        delete oldMsgs[messageDiscriminator];
+                    }
                 } else {
                     // Sending a new message
+                    if (!isOnline) {
+                        // We do not post "new" notifications for channels going/being offline
+                        continue;
+                    }
 
                     // Expand the message with a @mention for "here" or "everyone"
                     // We don't do this in updates because it causes some people to get spammed
