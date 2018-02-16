@@ -1,7 +1,7 @@
 # timbot
-**Just for fun: Discord bot that monitors a set of Twitch channels, and announces them going live.**
+**Discord bot that monitors a set of Twitch channels, announces them going live, and displays live stream statistics.**
 
-![Timbot](https://i.imgur.com/iK299zD.png)
+![Timbot](https://user-images.githubusercontent.com/6772638/36305243-09930efe-1313-11e8-98b1-fabf0aacde88.JPG)
 
 You can [invite it](https://discordapp.com/oauth2/authorize?client_id=411670773330345984&scope=bot) to your server for Tim's twitch channels. It announces to `#stream-announcements`.
 
@@ -41,7 +41,8 @@ Note that you will need to create a Discord application and bot, and a new Twitc
 |`twitch_client_secret`|`string`|Twitch Client Secret for the API. This corresponds to the Client ID above. You can find this by pressing `New Secret` when managing your application from the Twitch Developer Apps dashboard.|
 |`twitch_check_interval`|`integer`|The amount of milliseconds between each live status check. Note that Twitch API is rate limited to one request per second. Timbot currently enforces a minimum interval of 2500ms.|
 |`twitch_channels`|`string`|A comma-separated list of channel names to monitor. Each channel in this list will be announced once it goes live after previously being offline.`|
-|`discord_announce_channel`|`string`|The name of the channel the bot will announce to when a channel goes live, without the `#` token. Ensure the channel exists, and that the Bot has permissions to post messages to that channel.` 
+|`discord_announce_channel`|`string`|The name of the channel the bot will announce to when a channel goes live, without the `#` token. Ensure the channel exists, and that the Bot has permissions to post messages to that channel.`|
+|`discord_mentions`|`object`|Key-value object that can map channel names to the Discord mention that should be made in the announcement message (for example, `@here` or `@everyone`). Channel names must be lowercase. Mentions are only included in the initial message.`| 
 
 ### Starting timbot
 

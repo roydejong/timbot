@@ -151,19 +151,7 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
     StreamActivity.setChannelOnline(channelData);
 
     // Broadcast to all target channels
-    let mentionMode = null;
-
-    if (channelData.name.toLowerCase() === "monotonetim") {
-        mentionMode = "everyone";
-    } else if (channelData.name.toLowerCase() === "stereotonetim") {
-        mentionMode = "here";
-    }
-
     let msgFormatted = `${channelData.display_name} went live on Twitch!`;
-
-    if (mentionMode) {
-        msgFormatted += ` @${mentionMode}`
-    }
 
     let msgEmbed = new Discord.MessageEmbed({
         description: `:red_circle: **${channelData.display_name} is currently live on Twitch!**`,
@@ -193,12 +181,23 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
                 let existingMessage = oldMsgs[messageDiscriminator] || null;
 
                 if (existingMessage) {
+                    // Updating existing message
                     existingMessage.edit(msgFormatted, {
                         embed: msgEmbed
                     }).then((message) => {
                         console.log('[Discord]', `Updated announce msg in #${targetChannel.name} on ${targetChannel.guild.name}`);
                     });
                 } else {
+                    // Sending a new message
+
+                    // Expand the message with a @mention for "here" or "everyone"
+                    // We don't do this in updates because it causes some people to get spammed
+                    let mentionMode = (config.discord_mentions && config.discord_mentions[channelData.name.toLowerCase()]) || null;
+
+                    if (mentionMode) {
+                        msgFormatted += ` @${mentionMode}`
+                    }
+
                     targetChannel.send(msgFormatted, {
                         embed: msgEmbed
                     })
