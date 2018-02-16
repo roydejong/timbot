@@ -12,19 +12,19 @@ class TwitchMonitor {
         // Check interval
         let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
 
-        if (isNaN(checkIntervalMs) || checkIntervalMs <= 30 * 1000) {
-            // Cap request limit to 30 secs
-            checkIntervalMs = 30 * 1000;
+        if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
+            // Enforce minimum poll interval. We need to avoid hitting any rate limits, but there's no point in updating
+            // > approx. every minute because the Twitch API keeps its data and/or responses cached for a while anyway.
+            checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
         }
 
         setInterval(() => {
             this.refresh();
         }, checkIntervalMs);
 
-        this.refresh();
-
         // OK
         console.log('[TwitchMonitor]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.twitch_channels}].`);
+        this.refresh();
     }
 
     static refresh() {
@@ -167,5 +167,6 @@ TwitchMonitor.channelLiveCallbacks = [];
 TwitchMonitor.channelOfflineCallbacks = [];
 
 TwitchMonitor.EVENT_BUFFER_MS = 2 * 60 * 1000;
+TwitchMonitor.MIN_POLL_INTERVAL_MS = 1 * 60 * 1000;
 
 module.exports = TwitchMonitor;

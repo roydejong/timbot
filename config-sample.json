@@ -1,7 +1,7 @@
 {
   "bot_token": "<SET_ME>",
   "twitch_client_id": "<SET_ME>",
-  "twitch_check_interval_ms": 30000,
+  "twitch_check_interval_ms": 60000,
   "twitch_channels": "some,channel,names",
   "discord_announce_channel": "stream-announcements",
   "discord_mentions": {

@@ -33,7 +33,7 @@ Note that you will need to create a Discord application and bot, and a new Twitc
     {
         "bot_token": "<SET_ME>",
         "twitch_client_id": "<SET_ME>",
-        "twitch_check_interval_ms": 2500,
+        "twitch_check_interval_ms": 60000,
         "twitch_channels": "some,channel,names",
         "discord_announce_channel": "stream-announcements",
         "discord_mentions": {
@@ -46,7 +46,7 @@ Note that you will need to create a Discord application and bot, and a new Twitc
 |-----|----|-----------|
 |`bot_token`|`string`|The Discord bot token. See [this guide](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token) for details on setting up a Discord bot and generating a token.|
 |`twitch_client_id`|`string`|Twitch Client ID for the API. [Register a new Twitch API application](https://dev.twitch.tv/dashboard/apps) to generate one. When creating the application, you can set the `URL` value to `http://localhost`.|
-|`twitch_check_interval`|`integer`|The amount of milliseconds between each live status check. Note that Twitch API is rate limited to one request per second. Timbot currently enforces a minimum interval of 2500ms.|
+|`twitch_check_interval`|`integer`|The amount of milliseconds between each live status check. This also affects how often Discord messages are updated with new statistics. Timbot currently enforces a minimum interval of 60 seconds to prevent excessive requests to either service (Twitch caches data for a while anyway).|
 |`twitch_channels`|`string`|A comma-separated list of channel names to monitor. Each channel in this list will be announced once it goes live after previously being offline.`|
 |`discord_announce_channel`|`string`|The name of the channel the bot will announce to when a channel goes live, without the `#` token. Ensure the channel exists, and that the Bot has permissions to post messages to that channel.`|
 |`discord_mentions`|`object`|Key-value object that can map channel names to the Discord mention that should be made in the announcement message (for example, `@here` or `@everyone`). Channel names must be lowercase. Mentions are only included in the initial message.`| 
