@@ -8,6 +8,24 @@ console.log('Timbot is starting.');
 
 let targetChannels = [];
 
+let getServerEmoji = (emojiName, asText) => {
+    try {
+        let emoji = client.emojis.find("name", emojiName);
+
+        if (emoji) {
+            if (asText) {
+                return emoji.toString();
+            } else {
+                return emoji.id;
+            }
+        }
+    } catch (e) {
+        console.error(e);
+    }
+
+    return null;
+};
+
 let syncServerList = (logMembership) => {
     let nextTargetChannels = [];
 
@@ -61,8 +79,18 @@ client.on("guildDelete", guild => {
 });
 
 client.on('message', message => {
-    if (message.content === '!timbot') {
-        message.reply(':timMrBones:');
+    if (!message.content) {
+        return;
+    }
+
+    let messageNormalized = message.content.toLowerCase();
+
+    if (messageNormalized === "oh" || messageNormalized === "oh.") {
+        let ohEmoji = getServerEmoji("timOh", false);
+
+        if (ohEmoji) {
+            message.react(ohEmoji);
+        }
     }
 });
 
