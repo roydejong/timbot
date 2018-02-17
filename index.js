@@ -188,7 +188,7 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
     });
 
     msgEmbed.setColor(isOnline ? "RED" : "GREY");
-    msgEmbed.setThumbnail(streamData.preview.large);
+    msgEmbed.setThumbnail(streamData.preview.large + "?t=" + (Date.now() / 1000));
     msgEmbed.addField("Game", streamData.game || "(No game)", true);
     msgEmbed.addField("Status", isOnline ? `Live for ${streamData.viewers} viewers` : 'Stream has now ended', true);
     msgEmbed.setFooter(channelData.status, channelData.logo);
