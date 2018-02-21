@@ -85,7 +85,7 @@ client.on('message', message => {
 
     let messageNormalized = message.content.toLowerCase();
 
-    if (messageNormalized === "oh" || messageNormalized === "oh.") {
+    if (messageNormalized === "oh" || messageNormalized.startsWith("oh.") || messageNormalized.startsWith("oh!") || messageNormalized.startsWith("oh?")) {
         let ohEmoji = getServerEmoji("timOh", false);
 
         if (ohEmoji) {
@@ -232,9 +232,10 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
                     // Expand the message with a @mention for "here" or "everyone"
                     // We don't do this in updates because it causes some people to get spammed
                     let mentionMode = (config.discord_mentions && config.discord_mentions[channelData.name.toLowerCase()]) || null;
+                    let msgToSend = msgFormatted;
 
                     if (mentionMode) {
-                        msgFormatted += ` @${mentionMode}`
+                        msgToSend = msgFormatted + ` @${mentionMode}`
                     }
 
                     targetChannel.send(msgFormatted, {
