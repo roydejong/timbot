@@ -85,11 +85,21 @@ client.on('message', message => {
 
     let messageNormalized = message.content.toLowerCase();
 
+    // Easter egg: timOh reaction
     if (messageNormalized === "oh" || messageNormalized.startsWith("oh.") || messageNormalized.startsWith("oh!") || messageNormalized.startsWith("oh?")) {
         let ohEmoji = getServerEmoji("timOh", false);
 
         if (ohEmoji) {
             message.react(ohEmoji);
+        }
+    }
+
+    // Easter egg: timGuest420 reaction
+    if (messageNormalized.indexOf("grass") >= 0 || messageNormalized.indexOf("420") >= 0) {
+        let guest420Emoji = getServerEmoji("timGuest420", false);
+
+        if (guest420Emoji) {
+            message.react(guest420Emoji);
         }
     }
 });
@@ -169,34 +179,34 @@ class StreamActivity {
 // Listen to Twitch monitor events
 let oldMsgs = { };
 
-TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
+TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsLive) => {
     try {
         // Refresh channel list
         syncServerList(false);
     } catch (e) { }
 
     // Update activity
-    StreamActivity.setChannelOnline(channelData);
+    StreamActivity.setChannelOnline(twitchChannel);
 
     // Broadcast to all target channels
-    let msgFormatted = `${channelData.display_name} went live on Twitch!`;
+    let msgFormatted = `${twitchChannel.display_name} went live on Twitch!`;
 
     let msgEmbed = new Discord.MessageEmbed({
-        description: `:red_circle: **${channelData.display_name} is currently live on Twitch!**`,
-        title: channelData.url,
-        url: channelData.url
+        description: `:red_circle: **${twitchChannel.display_name} is currently live on Twitch!**`,
+        title: twitchChannel.url,
+        url: twitchChannel.url
     });
 
     let cacheBustTs = (Date.now() / 1000).toFixed(0);
 
-    msgEmbed.setColor(isOnline ? "RED" : "GREY");
-    msgEmbed.setThumbnail(streamData.preview.medium + "?t=" + cacheBustTs);
-    msgEmbed.addField("Game", streamData.game || "(No game)", true);
-    msgEmbed.addField("Status", isOnline ? `Live for ${streamData.viewers} viewers` : 'Stream has now ended', true);
-    msgEmbed.setFooter(channelData.status, channelData.logo);
+    msgEmbed.setColor(twitchChannelIsLive ? "RED" : "GREY");
+    msgEmbed.setThumbnail(twitchStream.preview.medium + "?t=" + cacheBustTs);
+    msgEmbed.addField("Game", twitchStream.game || "(No game)", true);
+    msgEmbed.addField("Status", twitchChannelIsLive ? `Live for ${twitchStream.viewers} viewers` : 'Stream has now ended', true);
+    msgEmbed.setFooter(twitchChannel.status, twitchChannel.logo);
 
-    if (!isOnline) {
-        msgEmbed.setDescription(`:white_circle:  ${channelData.display_name} was live on Twitch.`);
+    if (!twitchChannelIsLive) {
+        msgEmbed.setDescription(`:white_circle:  ${twitchChannel.display_name} was live on Twitch.`);
     }
 
     let anySent = false;
@@ -207,7 +217,7 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
         if (targetChannel) {
             try {
                 // Either send a new message, or update an old one
-                let messageDiscriminator = `${targetChannel.guild.name}_${targetChannel.name}_${channelData.name}_${streamData.created_at}`;
+                let messageDiscriminator = `${targetChannel.guild.id}_${targetChannel.name}_${twitchChannel.name}_${twitchStream.created_at}`;
                 let existingMessage = oldMsgs[messageDiscriminator] || null;
 
                 if (existingMessage) {
@@ -218,27 +228,27 @@ TwitchMonitor.onChannelLiveUpdate((channelData, streamData, isOnline) => {
                         console.log('[Discord]', `Updated announce msg in #${targetChannel.name} on ${targetChannel.guild.name}`);
                     });
 
-                    if (!isOnline) {
+                    if (!twitchChannelIsLive) {
                         // Mem cleanup: If channel just went offline, delete the entry in the message list
                         delete oldMsgs[messageDiscriminator];
                     }
                 } else {
                     // Sending a new message
-                    if (!isOnline) {
+                    if (!twitchChannelIsLive) {
                         // We do not post "new" notifications for channels going/being offline
                         continue;
                     }
 
                     // Expand the message with a @mention for "here" or "everyone"
                     // We don't do this in updates because it causes some people to get spammed
-                    let mentionMode = (config.discord_mentions && config.discord_mentions[channelData.name.toLowerCase()]) || null;
+                    let mentionMode = (config.discord_mentions && config.discord_mentions[twitchChannel.name.toLowerCase()]) || null;
                     let msgToSend = msgFormatted;
 
                     if (mentionMode) {
                         msgToSend = msgFormatted + ` @${mentionMode}`
                     }
 
-                    targetChannel.send(msgFormatted, {
+                    targetChannel.send(msgToSend, {
                         embed: msgEmbed
                     })
                     .then((message) => {
