@@ -7,12 +7,19 @@ const TwitchMonitor = require("./twitch-monitor");
 console.log('Timbot is starting.');
 
 let targetChannels = [];
+let emojiCache = { };
 
 let getServerEmoji = (emojiName, asText) => {
+    if (typeof emojiCache[emojiName] !== "undefined") {
+        return emojiCache[emojiName];
+    }
+
     try {
         let emoji = client.emojis.find("name", emojiName);
 
         if (emoji) {
+            emojiCache[emojiName] = emoji;
+
             if (asText) {
                 return emoji.toString();
             } else {
@@ -79,13 +86,25 @@ client.on("guildDelete", guild => {
 });
 
 client.on('message', message => {
-    if (!message.content) {
+    if (!message.content || message.author.bot) {
+        // Empty message, or bot message
         return;
     }
 
     try {
         let messageNormalized = message.content.toLowerCase();
         let messageWords = messageNormalized.split(' ');
+
+        // Easter egg: meme
+        if (messageNormalized.indexOf("meme") >= 0) {
+            let relationshipMinusEmoji = getServerEmoji("timMinus", false);
+
+            if (relationshipMinusEmoji) {
+                message.react(relationshipMinusEmoji);
+            }
+
+            return; // no stacking
+        }
 
         // Easter egg: timOh reaction
         if (messageNormalized === "oh" || messageNormalized.startsWith("oh.") || messageNormalized.startsWith("oh!") || messageNormalized.startsWith("oh?")) {
@@ -107,7 +126,7 @@ client.on('message', message => {
             || messageWords.indexOf("bong") >= 0 || messageNormalized.indexOf("devil's lettuce") >= 0
             || messageNormalized.indexOf("marijuana") >= 0 || messageNormalized.indexOf("dime bag") >= 0
             || messageWords.indexOf("dimebag") >= 0 || messageWords.indexOf("toke") >= 0
-            || messageWords.indexOf("blaze") >= 0
+            || messageWords.indexOf("blaze") >= 0 || messageWords.indexOf("blunt") >= 0
         ) {
             let guest420Emoji = getServerEmoji("timGuest420", false);
 
