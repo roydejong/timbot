@@ -83,24 +83,40 @@ client.on('message', message => {
         return;
     }
 
-    let messageNormalized = message.content.toLowerCase();
+    try {
+        let messageNormalized = message.content.toLowerCase();
+        let messageWords = messageNormalized.split(' ');
 
-    // Easter egg: timOh reaction
-    if (messageNormalized === "oh" || messageNormalized.startsWith("oh.") || messageNormalized.startsWith("oh!") || messageNormalized.startsWith("oh?")) {
-        let ohEmoji = getServerEmoji("timOh", false);
+        // Easter egg: timOh reaction
+        if (messageNormalized === "oh" || messageNormalized.startsWith("oh.") || messageNormalized.startsWith("oh!") || messageNormalized.startsWith("oh?")) {
+            let ohEmoji = getServerEmoji("timOh", false);
 
-        if (ohEmoji) {
-            message.react(ohEmoji);
+            if (ohEmoji) {
+                message.react(ohEmoji);
+            }
         }
-    }
 
-    // Easter egg: timGuest420 reaction
-    if (messageNormalized.indexOf("grass") >= 0 || messageNormalized.indexOf("420") >= 0) {
-        let guest420Emoji = getServerEmoji("timGuest420", false);
+        // Easter egg: timGuest420 reaction
+        if (messageWords.indexOf("grass") >= 0 || messageNormalized.indexOf("420") >= 0
+            || messageWords.indexOf("kush") >= 0 || messageWords.indexOf("weed") >= 0
+            || messageNormalized.indexOf("aunt mary") >= 0 || messageWords.indexOf("ganja") >= 0
+            || messageWords.indexOf("herb") >= 0 || messageWords.indexOf("joint") >= 0
+            || messageWords.indexOf("juja") >= 0 || messageNormalized.indexOf("mary jane") >= 0
+            || messageWords.indexOf("reefer") >= 0 || messageWords.indexOf("doobie") >= 0
+            || messageWords.indexOf("cannabis") >= 0 || messageNormalized.indexOf("magic brownie") >= 0
+            || messageWords.indexOf("bong") >= 0 || messageNormalized.indexOf("devil's lettuce") >= 0
+            || messageNormalized.indexOf("marijuana") >= 0 || messageNormalized.indexOf("dime bag") >= 0
+            || messageWords.indexOf("dimebag") >= 0 || messageWords.indexOf("toke") >= 0
+            || messageWords.indexOf("blaze") >= 0
+        ) {
+            let guest420Emoji = getServerEmoji("timGuest420", false);
 
-        if (guest420Emoji) {
-            message.react(guest420Emoji);
+            if (guest420Emoji) {
+                message.react(guest420Emoji);
+            }
         }
+    } catch (e) {
+        console.error('Message processing / dumb joke error:', e);
     }
 });
 
