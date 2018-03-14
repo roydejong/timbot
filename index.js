@@ -85,15 +85,43 @@ client.on("guildDelete", guild => {
     syncServerList(false);
 });
 
+let eeAtTs = 0;
+
 client.on('message', message => {
     if (!message.content || message.author.bot) {
         // Empty message, or bot message
         return;
     }
 
+    let now = Date.now();
+
     try {
         let messageNormalized = message.content.toLowerCase();
         let messageWords = messageNormalized.split(' ');
+        let messageMentionsByName = [];
+
+        message.mentions.users.forEach((user) => {
+            messageMentionsByName.push(user.username);
+        });
+
+        // Easter egg: mention of timbot
+        if (messageWords.indexOf("timbot") >= 0 || messageMentionsByName.indexOf("Timbot") >= 0) {
+            let lastDontAtMe = eeAtTs || 0;
+            let minsSinceDontAtMe = ((Date.now() - lastDontAtMe) / 1000) / 60;
+
+            if (minsSinceDontAtMe > 30) {
+                message.reply("don't @ me");
+                eeAtTs = now;
+            } else {
+                let relationshipMinusEmoji = getServerEmoji("timMinus", false);
+
+                if (relationshipMinusEmoji) {
+                    message.react(relationshipMinusEmoji);
+                }
+            }
+
+            return;
+        }
 
         // Easter egg: meme
         if (messageNormalized.indexOf("meme") >= 0) {
@@ -135,7 +163,7 @@ client.on('message', message => {
             }
         }
     } catch (e) {
-        console.error('Message processing / dumb joke error:', e);
+        console.error('Message processing / dumb joke error:', e, `<<< ${e.toString()} >>>`);
     }
 });
 
