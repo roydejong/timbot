@@ -1,0 +1,13 @@
+{
+  "bot_token": "NDExNjcwNzczMzMwMzQ1OTg0.DV_Hfg.w8lIPv8_1-l0LCVdRpk8a3xodUk",
+  "twitch_client_id": "ydi2edpv6kc7fktlqkt5eljai6qjwq",
+  "twitch_client_secret": "eyh3py8h0y1shjkhmhda9icu7v8u1o",
+  "twitch_check_interval_ms": 60000,
+  "twitch_channels": "monotonetim,stereotonetim,minitonetim,extralives",
+  "discord_announce_channel": "stream-announcements",
+  "discord_mentions": {
+    "monotonetim": "everyone",
+    "stereotonetim": "here",
+    "extralives": "everyone"
+  }
+}

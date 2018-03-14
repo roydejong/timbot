@@ -2,6 +2,7 @@ const config = require('./config.json');
 
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const axios = require('axios');
 const TwitchMonitor = require("./twitch-monitor");
 
 console.log('Timbot is starting.');
@@ -85,24 +86,99 @@ client.on("guildDelete", guild => {
     syncServerList(false);
 });
 
+let selloutList = [];
+
+axios.get("https://twitch.center/customapi/quote/list?token=a912f99b")
+.then((res) => {
+    let data = res.data;
+    let lines = data.split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        selloutList.push(line);
+    }
+
+    console.log('[Sellout]', `Sellout list initialized from remote, ${selloutList.length} items`);
+});
+
+let selloutCheckTs = 0;
+let selloutTimeout = null;
+
+let doSelloutMessage = (channel) => {
+    if (!selloutList.length) {
+        return;
+    }
+
+    let randomLine = selloutList[Math.floor(Math.random()*selloutList.length)];
+
+    if (!randomLine) {
+        return;
+    }
+
+    let messageText = "Oh. It's cool. I got this. ";
+    messageText += "How many quality Amazon™ products are there? At least ";
+    messageText += randomLine;
+
+    try {
+        channel.send(messageText);
+        channel.stopTyping(true);
+    } catch (e) {
+        console.error('[Sellout] ERR:', e.toString());
+    }
+};
+
 let eeAtTs = 0;
 
 client.on('message', message => {
-    if (!message.content || message.author.bot) {
-        // Empty message, or bot message
+    if (!message.content) {
+        // Empty message
+        return;
+    }
+
+    let messageNormalized = message.content.toLowerCase();
+
+    if (messageNormalized === "!sellout" || messageNormalized.indexOf("amazon.com") >= 0 || messageNormalized.indexOf("amzn.to") >= 0) {
+        // An amazon link was posted, or a new !sellout was called
+        // (either way we bail - we don't want duplicates or spam)
+        if (selloutTimeout) {
+            clearTimeout(selloutTimeout);
+            selloutTimeout = null;
+
+            try {
+                message.channel.stopTyping(true);
+            } catch (e) { }
+        }
+
+        // We need to make sure we're listening for bots posting links too, obviously, so this code lives pre-botcheck
+    }
+
+    if (message.author.bot) {
+        // Bot message
+        // As a courtesy, we ignore all messages from bots (and, therefore, ourselves) to avoid any looping or spamming
         return;
     }
 
     let now = Date.now();
 
     try {
-        let messageNormalized = message.content.toLowerCase();
         let messageWords = messageNormalized.split(' ');
         let messageMentionsByName = [];
 
         message.mentions.users.forEach((user) => {
             messageMentionsByName.push(user.username);
         });
+
+        // Sellout
+        if (messageNormalized === "!sellout") {
+            // Do a new sellout
+            message.channel.startTyping();
+
+            selloutTimeout = setTimeout(() => {
+                doSelloutMessage(message.channel);
+            }, 3500);
+
+            return;
+        }
 
         // Easter egg: mention of timbot
         if (messageWords.indexOf("timbot") >= 0 || messageMentionsByName.indexOf("Timbot") >= 0) {

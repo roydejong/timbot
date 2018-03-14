@@ -9,6 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.18.0",
     "discord.js": "discordjs/discord.js#master",
     "twitch-api": "^0.5.0"
   }
