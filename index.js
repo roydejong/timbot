@@ -115,7 +115,7 @@ let doSelloutMessage = (channel) => {
         return;
     }
 
-    let messageText = "Oh. It's cool. I got this. ";
+    let messageText = "Oh. I guess nightbot is out drinking again. I got this. ";
     messageText += "How many quality Amazon™ products are there? At least ";
     messageText += randomLine;
 
@@ -127,7 +127,7 @@ let doSelloutMessage = (channel) => {
     }
 };
 
-let eeAtTs = 0;
+let lastTextReplyAt = 0;
 
 client.on('message', message => {
     if (!message.content) {
@@ -135,9 +135,24 @@ client.on('message', message => {
         return;
     }
 
-    let messageNormalized = message.content.toLowerCase();
+    let txtLower = message.content.toLowerCase().trim();
 
-    if (messageNormalized === "!sellout" || messageNormalized.indexOf("amazon.com") >= 0 || messageNormalized.indexOf("amzn.to") >= 0) {
+    if (!txtLower.length) {
+        // Whitespace or blank message
+        return;
+    }
+
+    let txtNoPunct = txtLower;
+    txtNoPunct = txtNoPunct.replaceAll(",", " ");
+    txtNoPunct = txtNoPunct.replaceAll(".", " ");
+    txtNoPunct = txtNoPunct.replaceAll("?", " ");
+    txtNoPunct = txtNoPunct.replaceAll("!", " ");
+    txtNoPunct = txtNoPunct.replaceAll("'", "");
+    txtNoPunct = txtNoPunct.replaceAll(`"`, "");
+    txtNoPunct = txtNoPunct.replaceAll("  ", " ");
+    txtNoPunct = txtNoPunct.trim();
+
+    if (txtLower === "!sellout" || txtLower.indexOf("amazon.com") >= 0 || txtLower.indexOf("amzn.to") >= 0) {
         // An amazon link was posted, or a new !sellout was called
         // (either way we bail - we don't want duplicates or spam)
         if (selloutTimeout) {
@@ -161,16 +176,27 @@ client.on('message', message => {
     let now = Date.now();
 
     try {
-        let messageWords = messageNormalized.split(' ');
-        let messageMentionsByName = [];
+        // Determine individual words that were part of this message
+        let txtWords = txtNoPunct.split(' ');
+
+        // Determine the names of any users mentioned
+        let mentionedUsernames = [];
 
         message.mentions.users.forEach((user) => {
-            messageMentionsByName.push(user.username);
+            mentionedUsernames.push(user.username);
         });
 
-        // Sellout
-        if (messageNormalized === "!sellout") {
-            // Do a new sellout
+        // Determine whether *we* were mentioned
+        let timbotWasMentioned = (txtWords.indexOf("timbot") >= 0 || mentionedUsernames.indexOf("Timbot") >= 0);
+
+        // Anti spam timer
+        let lastTextReply = lastTextReplyAt || 0;
+        let minutesSinceLastTextReply = Math.floor(((Date.now() - lastTextReply) / 1000) / 60);
+        let okayToTextReply = (minutesSinceLastTextReply >= 1);
+
+        // Nightbot / !sellout helper
+        if (txtLower === "!sellout" || (timbotWasMentioned && txtLower.indexOf("!sellout") >= 0)) {
+            // Do a new sellout (either the "!sellout" command was used or someone mentioned "timbot" and "!sellout" together)
             message.channel.startTyping();
 
             selloutTimeout = setTimeout(() => {
@@ -180,27 +206,62 @@ client.on('message', message => {
             return;
         }
 
-        // Easter egg: mention of timbot
-        if (messageWords.indexOf("timbot") >= 0 || messageMentionsByName.indexOf("Timbot") >= 0) {
-            let lastDontAtMe = eeAtTs || 0;
-            let minsSinceDontAtMe = ((Date.now() - lastDontAtMe) / 1000) / 60;
+        // Easter egg: timbot mentions
+        if (timbotWasMentioned) {
+            let isNegative = (txtWords.indexOf("not") >= 0 || txtLower.indexOf("n't") >= 0 || txtWords.indexOf("bad") >= 0);
 
-            if (minsSinceDontAtMe > 30) {
-                message.reply("don't @ me");
-                eeAtTs = now;
+            // Good bot / bad bot
+            if (txtNoPunct.indexOf("good bot") >= 0 || txtNoPunct.indexOf("pretty bot") >= 0 ||
+                txtNoPunct.indexOf("bad bot") >= 0 || txtNoPunct.indexOf("love timbot") >= 0 ||
+                txtNoPunct.indexOf("love you") >= 0 || txtNoPunct.indexOf("is pretty") >= 0) {
+                if (isNegative) {
+                    let relationshipMinusEmoji = getServerEmoji("timMinus", false);
+
+                    if (relationshipMinusEmoji) {
+                        message.react(relationshipMinusEmoji);
+                    }
+
+                    if (okayToTextReply) {
+                        message.reply("you can go JO yourself cuz you're no bud of mine");
+                        lastTextReplyAt = now;
+                    }
+                } else {
+                    let relationshipPlusEmoji = getServerEmoji("timPlus", false);
+
+                    if (relationshipPlusEmoji) {
+                        message.react(relationshipPlusEmoji);
+                    }
+
+                    if (okayToTextReply) {
+                        message.reply("you're a good human");
+                        lastTextReplyAt = now;
+                    }
+                }
+            // Good night
+            } else if (!isNegative && (txtNoPunct.indexOf("good night") >= 0 || txtWords.indexOf("goodnight") >= 0 || txtWords.indexOf("night") >= 0)) {
+                if (okayToTextReply) {
+                    message.reply("good night");
+                    lastTextReplyAt = now;
+                }
+
+                message.react("🛏");
+            // General mention
             } else {
-                let relationshipMinusEmoji = getServerEmoji("timMinus", false);
+                if (okayToTextReply) {
+                    message.reply("don't @ me");
+                    lastTextReplyAt = now;
+                } else {
+                    let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
-                if (relationshipMinusEmoji) {
-                    message.react(relationshipMinusEmoji);
+                    if (relationshipMinusEmoji) {
+                        message.react(relationshipMinusEmoji);
+                    }
                 }
             }
-
-            return;
         }
 
         // Easter egg: meme
-        if (messageNormalized.indexOf("meme") >= 0) {
+        if (txtLower.indexOf("meme") >= 0) {
             let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
             if (relationshipMinusEmoji) {
@@ -211,7 +272,7 @@ client.on('message', message => {
         }
 
         // Easter egg: timOh reaction
-        if (messageNormalized === "oh" || messageNormalized.startsWith("oh.") || messageNormalized.startsWith("oh!") || messageNormalized.startsWith("oh?")) {
+        if (txtNoPunct === "oh" || txtNoPunct.startsWith("oh ")) {
             let ohEmoji = getServerEmoji("timOh", false);
 
             if (ohEmoji) {
@@ -220,17 +281,17 @@ client.on('message', message => {
         }
 
         // Easter egg: timGuest420 reaction
-        if (messageWords.indexOf("grass") >= 0 || messageNormalized.indexOf("420") >= 0
-            || messageWords.indexOf("kush") >= 0 || messageWords.indexOf("weed") >= 0
-            || messageNormalized.indexOf("aunt mary") >= 0 || messageWords.indexOf("ganja") >= 0
-            || messageWords.indexOf("herb") >= 0 || messageWords.indexOf("joint") >= 0
-            || messageWords.indexOf("juja") >= 0 || messageNormalized.indexOf("mary jane") >= 0
-            || messageWords.indexOf("reefer") >= 0 || messageWords.indexOf("doobie") >= 0
-            || messageWords.indexOf("cannabis") >= 0 || messageNormalized.indexOf("magic brownie") >= 0
-            || messageWords.indexOf("bong") >= 0 || messageNormalized.indexOf("devil's lettuce") >= 0
-            || messageNormalized.indexOf("marijuana") >= 0 || messageNormalized.indexOf("dime bag") >= 0
-            || messageWords.indexOf("dimebag") >= 0 || messageWords.indexOf("toke") >= 0
-            || messageWords.indexOf("blaze") >= 0 || messageWords.indexOf("blunt") >= 0
+        if (txtWords.indexOf("grass") >= 0 || txtLower.indexOf("420") >= 0
+            || txtWords.indexOf("kush") >= 0 || txtWords.indexOf("weed") >= 0
+            || txtLower.indexOf("aunt mary") >= 0 || txtWords.indexOf("ganja") >= 0
+            || txtWords.indexOf("herb") >= 0 || txtWords.indexOf("joint") >= 0
+            || txtWords.indexOf("juja") >= 0 || txtLower.indexOf("mary jane") >= 0
+            || txtWords.indexOf("reefer") >= 0 || txtWords.indexOf("doobie") >= 0
+            || txtWords.indexOf("cannabis") >= 0 || txtLower.indexOf("magic brownie") >= 0
+            || txtWords.indexOf("bong") >= 0 || txtNoPunct.indexOf("devils lettuce") >= 0
+            || txtLower.indexOf("marijuana") >= 0 || txtLower.indexOf("dime bag") >= 0
+            || txtWords.indexOf("dimebag") >= 0 || txtWords.indexOf("toke") >= 0
+            || txtWords.indexOf("blaze") >= 0 || txtWords.indexOf("blunt") >= 0
         ) {
             let guest420Emoji = getServerEmoji("timGuest420", false);
 
@@ -410,3 +471,8 @@ TwitchMonitor.onChannelOffline((channelData) => {
     // Update activity
     StreamActivity.setChannelOffline(channelData);
 });
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
