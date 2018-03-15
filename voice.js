@@ -10,38 +10,136 @@ class Voice {
      *
      * @param {VoiceChannel} voiceChannel
      */
-    static join (voiceChannel) {
-        return new Promise((resolve, reject) => {
+    static join (voiceChannel, forceSwitch) {
+        let channelId = voiceChannel.id.toString();
+        let promise = this.pendingConnections[channelId] || null;
+
+        if (promise) {
+            // Already have a pending connection promise
+            return promise;
+        }
+
+        promise = new Promise((resolve, reject) => {
             if (!config.voice_enabled) {
                 reject(new Error("Voice is disabled in config"));
+                delete this.pendingConnections[channelId];
                 return;
             }
 
-            let channelId = voiceChannel.toString();
             let channelConnection = this.openConnections[channelId] || null;
 
             if (!channelConnection) {
+                // Check if we're already connected to a channel in this guild
+                let guildId = voiceChannel.guild.id;
+                let guildConns = this.getConnectionsForGuild(guildId);
+
+                if (guildConns.length > 0) {
+                    // guildConns.forEach((guildVoiceCon) => {
+                    // TODO Still allow auto disconnect, even w/o force switch, if there's only empty channels
+                    // });
+
+                    if (!forceSwitch) {
+                        reject("Force switch is off, and already have an open connection in this guild!");
+                        delete this.pendingConnections[channelId];
+                        return;
+                    }
+
+                    guildConns.forEach((guildVoiceCon) => {
+                        console.log('[Voice]', '(Channel)', 'Leaving previous voice channel in same guild before joining voice channel');
+                        this.leave(guildVoiceCon.channel);
+                    });
+                }
+
                 voiceChannel.join()
                     .then((connection) => {
                         console.log('[Voice]', '(Channel)', 'Joined a voice channel: ', voiceChannel.toString());
 
                         channelConnection = connection;
+
                         this.openConnections[channelId] = channelConnection;
 
                         resolve(channelConnection);
+                        delete this.pendingConnections[channelId];
 
-                        this.sayOnConnection(connection, "Hello everyone. It's me, Timbot.");
+                        channelConnection.on('error', (err) => {
+                            console.error('[Voice]', '(Connection)', 'Connection error:', err);
+                            this.leave(voiceChannel);
+                        });
+
+                        channelConnection.on('failed', (err) => {
+                            console.error('[Voice]', '(Connection)', 'Connection failed:', err);
+                            this.leave(voiceChannel);
+                        });
+
+                        setTimeout(() => {
+                            this.sayOnConnection(connection, "Hello there friend. It's me, Timbot. Your favorite bud.");
+                        }, 0);
                     })
                     .catch((err) => {
                         console.error('[Voice]', '(Channel)', 'Error in voice channel connection: ', err);
                         delete this.openConnections[channelId];
+
                         reject(err);
+                        delete this.pendingConnections[channelId];
                     });
             } else {
                 // Already connected
                 resolve(channelConnection);
+                delete this.pendingConnections[channelId];
             }
         });
+
+        this.pendingConnections[channelId] = promise;
+
+        return promise;
+    }
+
+    static leave(voiceChannel) {
+        let channelId = voiceChannel.id.toString();
+        let channelConnection = this.openConnections[channelId] || null;
+
+        if (channelConnection) {
+            try {
+                channelConnection.disconnect();
+            } catch (e) { }
+
+            console.log('(Voice)', '(Channel)', 'Left channel:', channelId);
+        }
+
+        delete this.openConnections[channelId];
+        delete this.pendingConnections[channelId];
+    }
+
+    /**
+     * Handles a channel update event.
+     *
+     * @param {VoiceChannel} voiceChannel
+     */
+    static handleChannelStateUpdate(voiceChannel) {
+        let channelId = voiceChannel.id.toString();
+        let pendingTimeout = this.channelCheckTimeouts[channelId];
+
+        if (pendingTimeout) {
+            clearTimeout(pendingTimeout);
+            delete this.channelCheckTimeouts[channelId];
+        }
+
+        this.channelCheckTimeouts[channelId] = setTimeout(() => {
+            let channelId = voiceChannel.id.toString();
+            let channelConnection = this.openConnections[channelId] || null;
+
+            let hasOpenConnection = !!channelConnection;
+            let channelIsEmpty = (voiceChannel.members.size === 0);
+
+            if (!hasOpenConnection && !channelIsEmpty) {
+                // We need to join, someone is there
+                this.join(voiceChannel, false);
+            } else if (hasOpenConnection && voiceChannel.members.size <= 1) {
+                // It's just us :-(
+                console.log('(Voice)', 'Leaving empty channel:', channelId);
+                this.leave(voiceChannel);
+            }
+        }, 1000);
     }
 
     /**
@@ -111,6 +209,22 @@ class Voice {
             });
     }
 
+    static getConnectionsForGuild(guildId) {
+        let connections = [];
+
+        for (let channelKey in this.openConnections) {
+            if (this.openConnections.hasOwnProperty(channelKey)) {
+                let connection = this.openConnections[channelKey];
+
+                if (connection && connection.channel.guild.id === guildId) {
+                    connections.push(guildId);
+                }
+            }
+        }
+
+        return connections;
+    }
+
     /**
      * Renders text using the TTS engine and writes it out to a WAV file.
      * Returns a promise that will resolve with the WAV filename, or reject if TTS rendering fails for whatever reason.
@@ -149,5 +263,7 @@ class Voice {
 }
 
 Voice.openConnections = { };
+Voice.pendingConnections = { };
+Voice.channelCheckTimeouts = { };
 
 module.exports = Voice;

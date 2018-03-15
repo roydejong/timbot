@@ -204,24 +204,24 @@ client.on('message', message => {
         let okayToTextReply = (minutesSinceLastTextReply >= 1);
 
         let fnTextReply = function (txt) {
-            if (!okayToTextReply) {
-                return false;
+            if (okayToTextReply) {
+                message.reply(txt);
+                lastTextReplyAt = now;
             }
 
-            message.reply(txt);
-
             if (message.member && message.member.voiceChannel && config.voice_enabled) {
-                let ttsText = "Dear ";
-                ttsText += message.member.user.username;
+                let ttsText = "Hey: ";
+                ttsText += message.member.user.username.spacifyCamels();
                 ttsText += ", ";
                 ttsText += txt;
 
                 try {
                     Voice.say(message.member.voiceChannel, ttsText);
-                } catch (e) { }
+                } catch (e) {
+                    console.error('[VoiceResponse]', 'Something broke:', e);
+                }
             }
 
-            lastTextReplyAt = now;
             return true;
         };
 
@@ -252,9 +252,7 @@ client.on('message', message => {
                         message.react(relationshipMinusEmoji);
                     }
 
-                    if (okayToTextReply) {
-                        fnTextReply("you can go JO yourself cuz you're no bud of mine");
-                    }
+                    fnTextReply("you can go JO yourself cuz you're no bud of mine");
                 } else {
                     let relationshipPlusEmoji = getServerEmoji("timPlus", false);
 
@@ -262,27 +260,20 @@ client.on('message', message => {
                         message.react(relationshipPlusEmoji);
                     }
 
-                    if (okayToTextReply) {
-                        fnTextReply("you're a good human");
-                    }
+                    fnTextReply("you're a good human");
                 }
             // Good night
             } else if (!isNegative && (txtNoPunct.indexOf("good night") >= 0 || txtWords.indexOf("goodnight") >= 0 || txtWords.indexOf("night") >= 0)) {
-                if (okayToTextReply) {
-                    fnTextReply("good night");
-                }
-
+                fnTextReply("good night");
                 message.react("🛏");
             // General mention
             } else {
-                if (okayToTextReply) {
-                    fnTextReply("don't @ me");
-                } else {
-                    let relationshipMinusEmoji = getServerEmoji("timMinus", false);
+                fnTextReply("don't @ me");
 
-                    if (relationshipMinusEmoji) {
-                        message.react(relationshipMinusEmoji);
-                    }
+                let relationshipMinusEmoji = getServerEmoji("timMinus", false);
+
+                if (relationshipMinusEmoji) {
+                    message.react(relationshipMinusEmoji);
                 }
             }
         }
@@ -509,6 +500,16 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
     return anySent;
 });
 
+client.on('voiceStateUpdate', (oldMember, newMember) => {
+    if (oldMember && oldMember.voiceChannel) {
+        Voice.handleChannelStateUpdate(oldMember.voiceChannel);
+    }
+
+    if (newMember && newMember.voiceChannel) {
+        Voice.handleChannelStateUpdate(newMember.voiceChannel);
+    }
+});
+
 TwitchMonitor.onChannelOffline((channelData) => {
     // Update activity
     StreamActivity.setChannelOffline(channelData);
@@ -518,3 +519,13 @@ String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
 };
+
+String.prototype.spacifyCamels = function () {
+    let target = this;
+
+    try {
+        return target.replace(/([a-z](?=[A-Z]))/g, '$1 ');
+    } catch (e) {
+        return target;
+    }
+}
