@@ -24,7 +24,11 @@ class TwitchMonitor {
 
         // OK
         console.log('[TwitchMonitor]', `Configured stream status polling [${checkIntervalMs}ms] for channels [${config.twitch_channels}].`);
-        this.refresh();
+
+        // Immediate refresh after startup (allow voice etc to settle)
+        setTimeout(() => {
+            this.refresh();
+        }, 10000);
     }
 
     static refresh() {

@@ -39,7 +39,8 @@ Note that you will need to create a Discord application and bot, and a new Twitc
         "discord_mentions": {
             "some": "everyone",
             "channel": "here"
-        }
+        },
+        "voice_enabled": false
     }
 
 |Value|Type|Description|
@@ -49,7 +50,8 @@ Note that you will need to create a Discord application and bot, and a new Twitc
 |`twitch_check_interval`|`integer`|The amount of milliseconds between each live status check. This also affects how often Discord messages are updated with new statistics. Timbot currently enforces a minimum interval of 60 seconds to prevent excessive requests to either service (Twitch caches data for a while anyway).|
 |`twitch_channels`|`string`|A comma-separated list of channel names to monitor. Each channel in this list will be announced once it goes live after previously being offline.`|
 |`discord_announce_channel`|`string`|The name of the channel the bot will announce to when a channel goes live, without the `#` token. Ensure the channel exists, and that the Bot has permissions to post messages to that channel.`|
-|`discord_mentions`|`object`|Key-value object that can map channel names to the Discord mention that should be made in the announcement message (for example, `@here` or `@everyone`). Channel names must be lowercase. Mentions are only included in the initial message.`| 
+|`discord_mentions`|`object`|Key-value object that can map channel names to the Discord mention that should be made in the announcement message (for example, `@here` or `@everyone`). Channel names must be lowercase. Mentions are only included in the initial message.`|
+|`voice_enabled`|`boolean`|Enables Voice based easter egg stuff and TTS. Only works on Linux and requires `festival` to be installed. Bad for performance and will eat your disk space up quickly, probably. Don't use this in any remotely serious environment.| 
 
 ### Starting timbot
 

@@ -3,7 +3,9 @@ const config = require('./config.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const axios = require('axios');
+
 const TwitchMonitor = require("./twitch-monitor");
+const Voice = require("./voice");
 
 console.log('Timbot is starting.');
 
@@ -173,6 +175,13 @@ client.on('message', message => {
         return;
     }
 
+    // Auto join voice channels to say hi
+    try {
+        if (message.member && message.member.voiceChannel && config.voice_enabled) {
+            Voice.join(message.member.voiceChannel);
+        }
+    } catch (e) { }
+
     let now = Date.now();
 
     try {
@@ -193,6 +202,28 @@ client.on('message', message => {
         let lastTextReply = lastTextReplyAt || 0;
         let minutesSinceLastTextReply = Math.floor(((Date.now() - lastTextReply) / 1000) / 60);
         let okayToTextReply = (minutesSinceLastTextReply >= 1);
+
+        let fnTextReply = function (txt) {
+            if (!okayToTextReply) {
+                return false;
+            }
+
+            message.reply(txt);
+
+            if (message.member && message.member.voiceChannel && config.voice_enabled) {
+                let ttsText = "Dear ";
+                ttsText += message.member.user.username;
+                ttsText += ", ";
+                ttsText += txt;
+
+                try {
+                    Voice.say(message.member.voiceChannel, ttsText);
+                } catch (e) { }
+            }
+
+            lastTextReplyAt = now;
+            return true;
+        };
 
         // Nightbot / !sellout helper
         if (txtLower === "!sellout" || (timbotWasMentioned && txtLower.indexOf("!sellout") >= 0)) {
@@ -222,8 +253,7 @@ client.on('message', message => {
                     }
 
                     if (okayToTextReply) {
-                        message.reply("you can go JO yourself cuz you're no bud of mine");
-                        lastTextReplyAt = now;
+                        fnTextReply("you can go JO yourself cuz you're no bud of mine");
                     }
                 } else {
                     let relationshipPlusEmoji = getServerEmoji("timPlus", false);
@@ -233,23 +263,20 @@ client.on('message', message => {
                     }
 
                     if (okayToTextReply) {
-                        message.reply("you're a good human");
-                        lastTextReplyAt = now;
+                        fnTextReply("you're a good human");
                     }
                 }
             // Good night
             } else if (!isNegative && (txtNoPunct.indexOf("good night") >= 0 || txtWords.indexOf("goodnight") >= 0 || txtWords.indexOf("night") >= 0)) {
                 if (okayToTextReply) {
-                    message.reply("good night");
-                    lastTextReplyAt = now;
+                    fnTextReply("good night");
                 }
 
                 message.react("🛏");
             // General mention
             } else {
                 if (okayToTextReply) {
-                    message.reply("don't @ me");
-                    lastTextReplyAt = now;
+                    fnTextReply("don't @ me");
                 } else {
                     let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
@@ -410,6 +437,7 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
     }
 
     let anySent = false;
+    let didSendVoice = false;
 
     for (let i = 0; i < targetChannels.length; i++) {
         let targetChannel = targetChannels[i];
@@ -455,6 +483,20 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
                         oldMsgs[messageDiscriminator] = message;
                         console.log('[Discord]', `Sent announce msg to #${targetChannel.name} on ${targetChannel.guild.name}`);
                     });
+
+                    // Voice broadcast, looks like this is a new broadcast
+                    if (config.voice_enabled && !didSendVoice) {
+                        try {
+                            let ttsMessage = `Hey, everyone. ${twitchChannel.name} just went live on Twitch. ${twitchChannel.status}.`;
+
+                            if (twitchStream.game) {
+                                ttsMessage += ` The game being played is "${twitchStream.game.toString()}".`;
+                            }
+
+                            Voice.sayEverywhere(ttsMessage);
+                            didSendVoice = true;
+                        } catch (e) { }
+                    }
                 }
 
                 anySent = true;

@@ -11,6 +11,10 @@
   "dependencies": {
     "axios": "^0.18.0",
     "discord.js": "discordjs/discord.js#master",
+    "ffmpeg-binaries": "^3.2.2-3",
+    "node-opus": "^0.2.7",
+    "say": "^0.14.0",
+    "shelljs": "^0.8.1",
     "twitch-api": "^0.5.0"
   }
 }

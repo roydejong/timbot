@@ -9,5 +9,6 @@
     "monotonetim": "everyone",
     "stereotonetim": "here",
     "extralives": "everyone"
-  }
+  },
+  "voice_enabled": true
 }
