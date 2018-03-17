@@ -6,6 +6,7 @@ const axios = require('axios');
 
 const TwitchMonitor = require("./twitch-monitor");
 const Voice = require("./voice");
+const Insults = require("./insults");
 
 console.log('Timbot is starting.');
 
@@ -276,7 +277,7 @@ client.on('message', message => {
                 message.react("🛏");
             // General mention
             } else {
-                fnTextReply("don't @ me");
+                fnTextReply(Insults.getInsult() + ".. don't @ me.");
 
                 let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
@@ -546,4 +547,11 @@ Array.prototype.joinEnglishList = function () {
     } catch (e) {
         return a.join(', ');
     }
-}
+};
+
+String.prototype.lowercaseFirstChar = function () {
+    let string = this;
+    return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+console.log(Insults.getInsult());
