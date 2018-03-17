@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const shell = require('shelljs');
 const config = require('./config');
+const VoiceStatus = require('discord.js/src/util/Constants').VoiceStatus;
 
 class Voice {
     /**
@@ -34,10 +35,6 @@ class Voice {
                 let guildConns = this.getConnectionsForGuild(guildId);
 
                 if (guildConns.length > 0) {
-                    // guildConns.forEach((guildVoiceCon) => {
-                    // TODO Still allow auto disconnect, even w/o force switch, if there's only empty channels
-                    // });
-
                     if (!forceSwitch) {
                         reject("Force switch is off, and already have an open connection in this guild!");
                         delete this.pendingConnections[channelId];
@@ -83,15 +80,16 @@ class Voice {
                     })
                     .catch((err) => {
                         console.error('[Voice]', '(Channel)', 'Error in voice channel connection: ', err);
-                        delete this.openConnections[channelId];
-
+                        this.leave(voiceChannel);
                         reject(err);
-                        delete this.pendingConnections[channelId];
                     });
             } else {
                 // Already connected
                 resolve(channelConnection);
                 delete this.pendingConnections[channelId];
+
+                // Check to make sure channel hasn't disconnected (failsafe)
+                this.checkConnectionStatus(channelConnection);
             }
         });
 
@@ -100,6 +98,30 @@ class Voice {
         return promise;
     }
 
+    /**
+     * Checks the status of a voice connection object, cleaning up the connection if it has closed.
+     * This is a failsafe handler, and should generally not do anything unless we did not handle a status change or error.
+     *
+     * @param {VoiceConnection} voiceConnection
+     * @return {boolean} Returns true if connection does not look to be dead.
+     */
+    static checkConnectionStatus(voiceConnection) {
+        if (voiceConnection) {
+            if (voiceConnection.status === VoiceStatus.DISCONNECTED) {
+                console.warn('[Voice]', '(Connection)', 'A voice connection has been disconnected (failsafe detection), now leaving channel.');
+                this.leave(voiceConnection.channel);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Greets the peeps in a channel.
+     *
+     * @param {VoiceChannel} voiceChannel
+     */
     static greetChannel(voiceChannel) {
         let channelId = voiceChannel.id.toString();
         let channelConnection = this.openConnections[channelId] || null;
@@ -124,8 +146,6 @@ class Voice {
             peopleText = memberNames.joinEnglishList();
         }
 
-        console.log(memberNames);
-
         let greetingMsg = `Hello there ${peopleText}. It's me, Timbot. Your favorite bud.`;
 
         try {
@@ -135,6 +155,12 @@ class Voice {
         }
     }
 
+    /**
+     * Leaves a channel if possible, causing any connections to close.
+     * Ensures the state is clean so a new connection can be established.
+     *
+     * @param {VoiceChannel} voiceChannel
+     */
     static leave(voiceChannel) {
         let channelId = voiceChannel.id.toString();
         let channelConnection = this.openConnections[channelId] || null;
@@ -250,6 +276,13 @@ class Voice {
             });
     }
 
+    /**
+     * Attempts to list all voice connections for a certain guild.
+     * Because we can only have one voice connection per guild, this should really only list one or zero connections.
+     *
+     * @param guildId
+     * @return {Array<VoiceConnection>}
+     */
     static getConnectionsForGuild(guildId) {
         let connections = [];
 
@@ -257,7 +290,7 @@ class Voice {
             if (this.openConnections.hasOwnProperty(channelKey)) {
                 let connection = this.openConnections[channelKey];
 
-                if (connection && connection.channel.guild.id === guildId) {
+                if (connection && this.checkConnectionStatus(connection) && connection.channel.guild.id === guildId) {
                     connections.push(guildId);
                 }
             }
