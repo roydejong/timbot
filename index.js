@@ -536,4 +536,14 @@ String.prototype.spacifyCamels = function () {
     } catch (e) {
         return target;
     }
+};
+
+Array.prototype.joinEnglishList = function () {
+    let a = this;
+
+    try {
+        return [a.slice(0, -1).join(', '), a.slice(-1)[0]].join(a.length < 2 ? '' : ' and ');
+    } catch (e) {
+        return a.join(', ');
+    }
 }
