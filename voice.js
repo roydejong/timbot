@@ -68,6 +68,11 @@ class Voice {
                             this.leave(voiceChannel);
                         });
 
+                        channelConnection.on('disconnect', () => {
+                            console.warn('[Voice]', '(Connection)', 'Connection disconnect event received.');
+                            this.leave(voiceChannel);
+                        });
+
                         try {
                             this.sayOnConnection(channelConnection, "Oh.");
                         } catch (e) {
