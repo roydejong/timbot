@@ -205,8 +205,12 @@ client.on('message', message => {
 
         let fnTextReply = function (txt) {
             if (okayToTextReply) {
-                message.reply(txt);
-                lastTextReplyAt = now;
+                try {
+                    message.reply(txt);
+                    lastTextReplyAt = now;
+                } catch (e) {
+                    console.error('[Chat]', 'Reply error:', e)
+                }
             }
 
             if (message.member && message.member.voiceChannel && config.voice_enabled) {
@@ -221,6 +225,10 @@ client.on('message', message => {
                     console.error('[VoiceResponse]', 'Something broke:', e);
                 }
             }
+
+            try {
+                message.channel.stopTyping();
+            } catch (e) { }
 
             return true;
         };
