@@ -266,11 +266,6 @@ client.on('message', message => {
                         message.react(relationshipPlusEmoji);
                     }
                 } else if (message.member.voiceChannel) {
-                    message.channel.startTyping();
-
-                    console.log(urls);
-                    console.log(urls[0]);
-
                     Voice.playYoutubeUrl(message.member.voiceChannel, urls[0])
                         .then(() => {
                             message.react("🔊");
@@ -280,14 +275,12 @@ client.on('message', message => {
                         .catch((err) => {
                             message.reply("couldn't play that. sorry bud. 🤷");
                             message.react("❌");
-
-                            message.channel.stopTyping();
                         });
                 } else {
                     message.reply("you're not even in a voice channel. 🤷");
 
-                    if (relationshipPlusEmoji) {
-                        message.react(relationshipPlusEmoji);
+                    if (relationshipMinusEmoji) {
+                        message.react(relationshipMinusEmoji);
                     }
                 }
 
