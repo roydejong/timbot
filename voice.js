@@ -4,6 +4,7 @@ const fs = require('fs');
 const shell = require('shelljs');
 const config = require('./config');
 const VoiceStatus = require('discord.js/src/util/Constants').VoiceStatus;
+const ytdl = require('ytdl-core');
 
 class Voice {
     /**
@@ -59,18 +60,24 @@ class Voice {
                         delete this.pendingConnections[channelId];
 
                         channelConnection.on('error', (err) => {
-                            console.error('[Voice]', '(Connection)', 'Connection error:', err);
-                            this.leave(voiceChannel);
+                            if (!!this.openConnections[channelId]) {
+                                console.error('[Voice]', '(Connection)', 'Connection error:', err);
+                                this.leave(voiceChannel);
+                            }
                         });
 
                         channelConnection.on('failed', (err) => {
-                            console.error('[Voice]', '(Connection)', 'Connection failed:', err);
-                            this.leave(voiceChannel);
+                            if (!!this.openConnections[channelId]) {
+                                console.error('[Voice]', '(Connection)', 'Connection failed:', err);
+                                this.leave(voiceChannel);
+                            }
                         });
 
                         channelConnection.on('disconnect', () => {
-                            console.warn('[Voice]', '(Connection)', 'Connection disconnect event received.');
-                            this.leave(voiceChannel);
+                            if (!!this.openConnections[channelId]) {
+                                console.warn('[Voice]', '(Connection)', 'Connection disconnect event received.');
+                                this.leave(voiceChannel);
+                            }
                         });
 
                         try {
@@ -171,11 +178,14 @@ class Voice {
         let channelConnection = this.openConnections[channelId] || null;
 
         if (channelConnection) {
-            try {
-                channelConnection.disconnect();
-            } catch (e) { }
+            if (channelConnection.status !== VoiceStatus.DISCONNECTED) {
+                try {
+                    channelConnection.disconnect();
+                } catch (e) {
+                }
 
-            console.log('(Voice)', '(Channel)', 'Left channel:', channelId);
+                console.log('(Voice)', '(Channel)', 'Leaving channel:', channelId);
+            }
         }
 
         delete this.openConnections[channelId];
@@ -250,6 +260,70 @@ class Voice {
                 // TTS error
                 console.error('[Voice]', '(Say)', 'TTS rendering failed', err);
             });
+    }
+
+    /**
+     * Combined helper function: Play a supported stream URL on a voice connection.
+     *
+     * @param {VoiceChannel} voiceChannel
+     * @param {string} url
+     */
+    static playYoutubeUrl(voiceChannel, url) {
+        // Join the channel or grab existing connection
+        return new Promise((resolve, reject) => {
+            return this.join(voiceChannel, true)
+                .then((connection) => {
+                    this.playYoutubeAudioStreamOnConnection(connection, url)
+                        .then(() => {
+                            resolve();
+                        })
+                        .catch((err) => {
+                            console.error('[Voice]', '(PlayUrl)', 'Stream problem', err);
+                            reject(err);
+                        });
+                })
+                .catch((err) => {
+                    // Connect error
+                    console.error('[Voice]', '(PlayUrl)', 'Voice connection problem', err);
+                    reject(err);
+                });
+        });
+    }
+
+    /**
+     * Attempts to stop any previous playback.
+     *
+     * @param {VoiceChannel} voiceChannel
+     */
+    static shutUp(voiceChannel) {
+        let channelId = voiceChannel.id.toString();
+        let channelConnection = this.openConnections[channelId] || null;
+
+        if (channelConnection && channelConnection.dispatcher) {
+            try {
+                channelConnection.dispatcher.end();
+            } catch (e) { }
+        }
+    }
+
+    /**
+     * Helper function: Play YouTube audio stream via ytdl.
+     *
+     * @param {VoiceConnection} connection
+     * @param {string} youtubeUrl
+     * @return {Promise<string>}
+     */
+    static playYoutubeAudioStreamOnConnection(connection, youtubeUrl) {
+        return new Promise((resolve, reject) => {
+            try {
+                const streamOptions = {seek: 0, volume: 1};
+                let stream = ytdl(youtubeUrl, {filter: 'audioonly'});
+                let dispatcher = connection.play(stream, streamOptions);
+                resolve(dispatcher);
+            } catch (err) {
+                reject(err);
+            }
+        });
     }
 
     /**
@@ -344,5 +418,6 @@ class Voice {
 Voice.openConnections = { };
 Voice.pendingConnections = { };
 Voice.channelCheckTimeouts = { };
+Voice.channelLastDispatcher = { };
 
 module.exports = Voice;

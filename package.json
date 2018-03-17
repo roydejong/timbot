@@ -15,6 +15,7 @@
     "node-opus": "^0.2.7",
     "say": "^0.14.0",
     "shelljs": "^0.8.1",
-    "twitch-api": "^0.5.0"
+    "twitch-api": "^0.5.0",
+    "ytdl-core": "^0.20.2"
   }
 }

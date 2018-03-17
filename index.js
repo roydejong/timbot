@@ -138,7 +138,8 @@ client.on('message', message => {
         return;
     }
 
-    let txtLower = message.content.toLowerCase().trim();
+    let txtPlain = message.content.toString().trim();
+    let txtLower = txtPlain.toLowerCase();
 
     if (!txtLower.length) {
         // Whitespace or blank message
@@ -204,8 +205,8 @@ client.on('message', message => {
         let minutesSinceLastTextReply = Math.floor(((Date.now() - lastTextReply) / 1000) / 60);
         let okayToTextReply = (minutesSinceLastTextReply >= 1);
 
-        let fnTextReply = function (txt) {
-            if (okayToTextReply) {
+        let fnTextReply = function (txt, force) {
+            if (okayToTextReply || force) {
                 try {
                     message.reply(txt);
                     lastTextReplyAt = now;
@@ -246,40 +247,89 @@ client.on('message', message => {
             return;
         }
 
-        // Easter egg: timbot mentions
-        if (timbotWasMentioned) {
-            let isNegative = (txtWords.indexOf("not") >= 0 || txtLower.indexOf("n't") >= 0 || txtWords.indexOf("bad") >= 0);
+        let relationshipPlusEmoji = getServerEmoji("timPlus", false);
+        let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
-            // Good bot / bad bot
-            if (txtNoPunct.indexOf("good bot") >= 0 || txtNoPunct.indexOf("pretty bot") >= 0 ||
+        // Timbot mentions
+        if (timbotWasMentioned) {
+            let isNegative = (txtWords.indexOf("not") >= 0 || txtLower.indexOf("n't") >= 0 ||
+                txtWords.indexOf("bad") >= 0);
+
+            // Youtube play --------------------------------------------------------------------------------------------
+            if (txtPlain.indexOf("://www.youtube.com") >= 0) {
+                let urls = txtPlain.match(/\bhttps?:\/\/\S+/gi);
+
+                if (urls && urls.length !== 1) {
+                    message.reply("just give me one, full, normal video URL. It's really not that hard. 🤷");
+
+                    if (relationshipPlusEmoji) {
+                        message.react(relationshipPlusEmoji);
+                    }
+                } else if (message.member.voiceChannel) {
+                    message.channel.startTyping();
+
+                    console.log(urls);
+                    console.log(urls[0]);
+
+                    Voice.playYoutubeUrl(message.member.voiceChannel, urls[0])
+                        .then(() => {
+                            message.react("🔊");
+
+                            message.channel.stopTyping();
+                        })
+                        .catch((err) => {
+                            message.reply("couldn't play that. sorry bud. 🤷");
+                            message.react("❌");
+
+                            message.channel.stopTyping();
+                        });
+                } else {
+                    message.reply("you're not even in a voice channel. 🤷");
+
+                    if (relationshipPlusEmoji) {
+                        message.react(relationshipPlusEmoji);
+                    }
+                }
+
+            // Shut up -------------------------------------------------------------------------------------------------
+            } else if (txtNoPunct.indexOf("shut up") >= 0 || txtNoPunct.indexOf("stop") >= 0) {
+                if (message.member.voiceChannel) {
+                    Voice.shutUp(message.member.voiceChannel);
+                    message.react("🔇");
+                } else {
+                    message.reply("you're not even in a voice channel. 🤷");
+
+                    if (relationshipMinusEmoji) {
+                        message.react(relationshipMinusEmoji);
+                    }
+                }
+
+            // Good bot / bad bot --------------------------------------------------------------------------------------
+            } else if (txtNoPunct.indexOf("good bot") >= 0 || txtNoPunct.indexOf("pretty bot") >= 0 ||
                 txtNoPunct.indexOf("bad bot") >= 0 || txtNoPunct.indexOf("love timbot") >= 0 ||
                 txtNoPunct.indexOf("love you") >= 0 || txtNoPunct.indexOf("is pretty") >= 0) {
                 if (isNegative) {
-                    let relationshipMinusEmoji = getServerEmoji("timMinus", false);
-
                     if (relationshipMinusEmoji) {
                         message.react(relationshipMinusEmoji);
                     }
 
                     fnTextReply("you can go JO yourself cuz you're no bud of mine");
                 } else {
-                    let relationshipPlusEmoji = getServerEmoji("timPlus", false);
-
                     if (relationshipPlusEmoji) {
                         message.react(relationshipPlusEmoji);
                     }
 
                     fnTextReply("you're a good human");
                 }
-            // Good night
+
+            // Good night ----------------------------------------------------------------------------------------------
             } else if (!isNegative && (txtNoPunct.indexOf("good night") >= 0 || txtWords.indexOf("goodnight") >= 0 || txtWords.indexOf("night") >= 0)) {
                 fnTextReply("good night");
                 message.react("🛏");
-            // General mention
+
+            // General mention -----------------------------------------------------------------------------------------
             } else {
                 fnTextReply(Insults.getInsult() + ".. don't @ me.");
-
-                let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
                 if (relationshipMinusEmoji) {
                     message.react(relationshipMinusEmoji);
@@ -289,8 +339,6 @@ client.on('message', message => {
 
         // Easter egg: meme
         if (txtLower.indexOf("meme") >= 0) {
-            let relationshipMinusEmoji = getServerEmoji("timMinus", false);
-
             if (relationshipMinusEmoji) {
                 message.react(relationshipMinusEmoji);
             }
