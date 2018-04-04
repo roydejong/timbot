@@ -229,12 +229,13 @@ class Voice {
      *
      * @param {VoiceChannel} voiceChannel
      * @param {string} text
+     * @param {boolean} important If true, stop playback of any other sound.
      */
-    static say(voiceChannel, text) {
+    static say(voiceChannel, text, important) {
         // Join the channel or grab existing connection
         return this.join(voiceChannel)
             .then((connection) => {
-                return this.sayOnConnection(connection, text);
+                return this.sayOnConnection(connection, text, important);
             })
             .catch((err) => {
                 // Connect error
@@ -247,14 +248,18 @@ class Voice {
      *
      * @param {VoiceConnection} connection
      * @param {string} text
+     * @param {boolean} important If true, stop playback of any other sound.
      * @return {Promise<string>}
      */
-    static sayOnConnection(connection, text) {
+    static sayOnConnection(connection, text, important) {
         // Render the TTS file
         return this.textToWav(text)
             .then((wavFileName) => {
                 // TTS ok, do playback on connection
-                connection.play(wavFileName);
+                if (important || !connection.dispatcher || connection.dispatcher.paused ||
+                    connection.dispatcher.destroyed || (connection.dispatcher._writableState && connection.dispatcher._writableState.ended)) {
+                    connection.play(wavFileName);
+                }
             })
             .catch((err) => {
                 // TTS error
