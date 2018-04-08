@@ -256,11 +256,11 @@ client.on('message', message => {
                 txtWords.indexOf("bad") >= 0);
 
             // Youtube play --------------------------------------------------------------------------------------------
-            if (txtPlain.indexOf("://www.youtube.com") >= 0) {
+            if (txtPlain.indexOf("youtube.com/") >= 0 || txtPlain.indexOf("youtu.be/") >= 0) {
                 let urls = txtPlain.match(/\bhttps?:\/\/\S+/gi);
 
                 if (urls && urls.length !== 1) {
-                    message.reply("just give me one, full, normal video URL. It's really not that hard. 🤷");
+                    message.reply("give me one URL, bud. 🤷");
 
                     if (relationshipPlusEmoji) {
                         message.react(relationshipPlusEmoji);
