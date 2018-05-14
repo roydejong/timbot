@@ -64,7 +64,8 @@ class TwitterMonitor {
             let fnRefreshUser = (dbRecord) => {
                 let params = {
                     screen_name: screenName,
-                    count: 1
+                    count: 1,
+                    exclude_replies: true
                 };
 
                 this.client.get('statuses/user_timeline', params, (error, tweets, response) => {
