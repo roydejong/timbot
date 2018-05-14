@@ -31,16 +31,21 @@ To configure timbot, copy the included `config-sample.json` to `config.json` and
 Note that you will need to create a Discord application and bot, and a new Twitch API application to use timbot.
 
     {
-        "bot_token": "<SET_ME>",
-        "twitch_client_id": "<SET_ME>",
-        "twitch_check_interval_ms": 60000,
-        "twitch_channels": "some,channel,names",
-        "discord_announce_channel": "stream-announcements",
-        "discord_mentions": {
-            "some": "everyone",
-            "channel": "here"
-        },
-        "voice_enabled": false
+      "bot_token": "<SET_ME>",
+      "twitch_client_id": "<SET_ME>",
+      "twitch_check_interval_ms": 60000,
+      "twitch_channels": "some,channel,names",
+      "discord_announce_channel": "stream-announcements",
+      "discord_mentions": {
+        "channel_sample_1": "everyone",
+        "channel_sample_2": "here"
+      },
+      "voice_enabled": false,
+      "twitter_names": [],
+      "twitter_api_key": "",
+      "twitter_api_secret": "",
+      "twitter_access_token": "",
+      "twitter_access_token_secret": ""
     }
 
 |Value|Type|Description|
@@ -51,7 +56,12 @@ Note that you will need to create a Discord application and bot, and a new Twitc
 |`twitch_channels`|`string`|A comma-separated list of channel names to monitor. Each channel in this list will be announced once it goes live after previously being offline.`|
 |`discord_announce_channel`|`string`|The name of the channel the bot will announce to when a channel goes live, without the `#` token. Ensure the channel exists, and that the Bot has permissions to post messages to that channel.`|
 |`discord_mentions`|`object`|Key-value object that can map channel names to the Discord mention that should be made in the announcement message (for example, `@here` or `@everyone`). Channel names must be lowercase. Mentions are only included in the initial message.`|
-|`voice_enabled`|`boolean`|Enables Voice based easter egg stuff and TTS. Only works on Linux and requires `festival` to be installed. Bad for performance and will eat your disk space up quickly, probably. Don't use this in any remotely serious environment.| 
+|`voice_enabled`|`boolean`|Enables Voice based easter egg stuff and TTS. Only works on Linux and requires `festival` to be installed. Bad for performance and will eat your disk space up quickly, probably. Don't use this in any remotely serious environment.|
+|`twitter_api_key`|`string`|Consumer API Token|
+|`twitter_api_secret`|`string`|Consumer API Secret|
+|`twitter_access_token`|`string`|User's OAuth Token|
+|`twitter_access_token_secret`|`string`|User's OAuth Token Secret|
+|`twitter_names`|`array`|Array of Twitter usernames to watch. Do not watch more than 15 users at a time to avoid hitting the rate limit.|
 
 ### Starting timbot
 

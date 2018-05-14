@@ -8,5 +8,10 @@
     "channel_sample_1": "everyone",
     "channel_sample_2": "here"
   },
-  "voice_enabled": false
+  "voice_enabled": false,
+  "twitter_names": [],
+  "twitter_api_key": "",
+  "twitter_api_secret": "",
+  "twitter_access_token": "",
+  "twitter_access_token_secret": ""
 }

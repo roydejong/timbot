@@ -7,7 +7,35 @@ const axios = require('axios');
 const TwitchMonitor = require("./twitch-monitor");
 const Voice = require("./voice");
 const Insults = require("./insults");
+const TwitterMonitor = require("./twitter-monitor");
 
+// --- Twitter monitor stuff -------------------------------------------------------------------------------------------
+let twitterNames = config.twitter_names;
+let twitterMonitor = null;
+
+if (twitterNames && twitterNames.length > 0) {
+    twitterMonitor = new TwitterMonitor(config.twitter_api_key, config.twitter_api_secret,
+        config.twitter_access_token, config.twitter_access_token_secret, twitterNames);
+
+    twitterMonitor.onNewTweet((tweet) => {
+        for (let i = 0; i < targetChannels.length; i++) {
+            let targetChannel = targetChannels[i];
+
+            if (targetChannel) {
+                try {
+                    let tweetUrl = `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`;
+                    let messageText = `${tweet.user.name} (@${tweet.user.screen_name}) just Tweeted:\r\n${tweetUrl}`;
+
+                    targetChannel.send(messageText);
+                } catch (e) {
+                    console.error('[TwitterAnnounce]', 'Could not post message in Discord:', targetChannel, e);
+                }
+            }
+        }
+    });
+}
+
+// --- Startup ---------------------------------------------------------------------------------------------------------
 console.log('Timbot is starting.');
 
 let targetChannels = [];
@@ -75,6 +103,11 @@ client.on('ready', () => {
 
     // Begin Twitch API polling
     TwitchMonitor.start();
+
+    if (twitterMonitor) {
+        // Begin Twitter polling
+        twitterMonitor.start();
+    }
 });
 
 client.on("guildCreate", guild => {
@@ -565,6 +598,7 @@ TwitchMonitor.onChannelOffline((channelData) => {
     StreamActivity.setChannelOffline(channelData);
 });
 
+// --- Common functions ------------------------------------------------------------------------------------------------
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
@@ -594,5 +628,3 @@ String.prototype.lowercaseFirstChar = function () {
     let string = this;
     return string.charAt(0).toUpperCase() + string.slice(1);
 };
-
-console.log(Insults.getInsult());
