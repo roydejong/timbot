@@ -407,7 +407,7 @@ class Voice {
             text = text.replaceAll(`"`, `\\"`);
 
             // Execute shell command to generate the file
-            let speakCommand = `echo "${text}" | text2wave -o "${targetFileName}"`;
+            let speakCommand = `echo "${text}" | text2wave -o "${targetFileName}" -eval "(voice_rab_diphone)"`;
 
             shell.exec(speakCommand, { async: true, silent: false }, (code, stdout, stderr) => {
                 if (code === 0) {

@@ -245,10 +245,15 @@ client.on('message', message => {
         let minutesSinceLastTextReply = Math.floor(((Date.now() - lastTextReply) / 1000) / 60);
         let okayToTextReply = (minutesSinceLastTextReply >= 1);
 
-        let fnTextReply = function (txt, force) {
+        let fnTextReply = function (txt, force, asNormal) {
             if (okayToTextReply || force) {
                 try {
-                    message.reply(txt);
+                    if (asNormal) {
+                        message.channel.send(txt);
+                    } else {
+                        message.reply(txt);
+                    }
+
                     lastTextReplyAt = now;
                 } catch (e) {
                     console.error('[Chat]', 'Reply error:', e)
@@ -256,7 +261,7 @@ client.on('message', message => {
             }
 
             if (message.member && message.member.voiceChannel && config.voice_enabled) {
-                let ttsText = "Hey: ";
+                let ttsText = "";
                 ttsText += message.member.user.username.spacifyCamels();
                 ttsText += ", ";
                 ttsText += txt;
@@ -351,14 +356,15 @@ client.on('message', message => {
                     cleverbot.say(cleverInput, message.member.user.discriminator)
                         .then((res) => {
                             if (res && res.length) {
-                                message.channel.send(res);
+                                fnTextReply(res, true, true);
                             } else {
+                                // No or blank response from CB
                                 message.react("🤷");
+                                message.channel.stopTyping(true);
                             }
-
-                            message.channel.stopTyping(true);
                         })
                         .catch((err) => {
+                            // Err, no CB response
                             message.react("❌");
                             message.channel.stopTyping(true);
                         });
