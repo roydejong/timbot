@@ -3,11 +3,18 @@ const config = require('./config.json');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const axios = require('axios');
+const Cleverbot = require('clevertype').Cleverbot;
 
 const TwitchMonitor = require("./twitch-monitor");
 const Voice = require("./voice");
-const Insults = require("./insults");
 const TwitterMonitor = require("./twitter-monitor");
+
+// --- Cleverbot init --------------------------------------------------------------------------------------------------
+let cleverbot = null;
+
+if (config.cleverbot_token) {
+    cleverbot = new Cleverbot(config.cleverbot_token, true);
+}
 
 // --- Twitter monitor stuff -------------------------------------------------------------------------------------------
 let twitterNames = config.twitter_names;
@@ -308,6 +315,8 @@ client.on('message', message => {
                         .catch((err) => {
                             message.reply("couldn't play that. sorry bud. 🤷");
                             message.react("❌");
+
+                            console.error('[Playback Error Response]', err);
                         });
                 } else {
                     message.reply("you're not even in a voice channel. 🤷");
@@ -329,36 +338,30 @@ client.on('message', message => {
                         message.react(relationshipMinusEmoji);
                     }
                 }
-
-            // Good bot / bad bot --------------------------------------------------------------------------------------
-            } else if (txtNoPunct.indexOf("good bot") >= 0 || txtNoPunct.indexOf("pretty bot") >= 0 ||
-                txtNoPunct.indexOf("bad bot") >= 0 || txtNoPunct.indexOf("love timbot") >= 0 ||
-                txtNoPunct.indexOf("love you") >= 0 || txtNoPunct.indexOf("is pretty") >= 0) {
-                if (isNegative) {
-                    if (relationshipMinusEmoji) {
-                        message.react(relationshipMinusEmoji);
-                    }
-
-                    fnTextReply("you can go JO yourself cuz you're no bud of mine");
-                } else {
-                    if (relationshipPlusEmoji) {
-                        message.react(relationshipPlusEmoji);
-                    }
-
-                    fnTextReply("you're a good human");
-                }
-
-            // Good night ----------------------------------------------------------------------------------------------
-            } else if (!isNegative && (txtNoPunct.indexOf("good night") >= 0 || txtWords.indexOf("goodnight") >= 0 || txtWords.indexOf("night") >= 0)) {
-                fnTextReply("good night");
-                message.react("🛏");
-
             // General mention -----------------------------------------------------------------------------------------
             } else {
-                fnTextReply(Insults.getInsult() + ".. don't @ me.");
+                if (cleverbot) {
+                    message.channel.startTyping();
 
-                if (relationshipMinusEmoji) {
-                    message.react(relationshipMinusEmoji);
+                    let cleverInput = message.cleanContent;
+                    cleverInput = cleverInput.toLowerCase();
+                    cleverInput = cleverInput.replaceAll("@timbot", "");
+                    cleverInput = cleverInput.replaceAll("timbot", "");
+
+                    cleverbot.say(cleverInput, message.member.user.discriminator)
+                        .then((res) => {
+                            if (res && res.length) {
+                                message.channel.send(res);
+                            } else {
+                                message.react("🤷");
+                            }
+
+                            message.channel.stopTyping(true);
+                        })
+                        .catch((err) => {
+                            message.react("❌");
+                            message.channel.stopTyping(true);
+                        });
                 }
             }
         }
