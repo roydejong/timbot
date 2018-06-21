@@ -349,14 +349,13 @@ client.on('message', message => {
                     message.channel.startTyping();
 
                     let cleverInput = message.cleanContent;
-                    cleverInput = cleverInput.toLowerCase();
-                    cleverInput = cleverInput.replaceAll("@timbot", "");
-                    cleverInput = cleverInput.replaceAll("timbot", "");
 
                     cleverbot.say(cleverInput, message.member.user.discriminator)
-                        .then((res) => {
-                            if (res && res.length) {
-                                fnTextReply(res, true, true);
+                        .then((cleverOutput) => {
+                            if (cleverOutput && cleverOutput.length) {
+                                cleverOutput = cleverOutput.replaceAll("cleverbot", "Timbot");
+
+                                fnTextReply(cleverOutput, true, true);
                             } else {
                                 // No or blank response from CB
                                 message.react("🤷");
