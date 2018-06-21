@@ -373,6 +373,20 @@ client.on('message', message => {
         }
 
         // Easter egg: meme
+        if (txtLower.indexOf("loss") >= 0) {
+            lossEmoji = getServerEmoji("THINK_ABOUT_LOSS")
+
+            if (lossEmoji) {
+                message.react(lossEmoji);
+            }
+
+            if (relationshipMinusEmoji) {
+                message.react(relationshipMinusEmoji);
+            }
+
+            return; // no stacking
+        }
+
         if (txtLower.indexOf("meme") >= 0) {
             if (relationshipMinusEmoji) {
                 message.react(relationshipMinusEmoji);
