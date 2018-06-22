@@ -12,6 +12,7 @@
     "axios": "^0.18.0",
     "clevertype": "^2.0.4",
     "discord.js": "discordjs/discord.js#master",
+    "feedparser": "^2.2.9",
     "ffmpeg-binaries": "^3.2.2-3",
     "node-opus": "^0.2.7",
     "say": "^0.14.0",

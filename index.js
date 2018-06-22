@@ -1,13 +1,20 @@
 const config = require('./config.json');
 
-const Discord = require('discord.js');
-const client = new Discord.Client();
 const axios = require('axios');
 const Cleverbot = require('clevertype').Cleverbot;
+
+const Discord = require('discord.js');
+const client = new Discord.Client();
+global.discordJsClient = client;
 
 const TwitchMonitor = require("./twitch-monitor");
 const Voice = require("./voice");
 const TwitterMonitor = require("./twitter-monitor");
+const FooduseMonitor = require("./fooduse-monitor");
+const DiscordChannelSync = require("./discord-channel-sync");
+
+// --- Startup ---------------------------------------------------------------------------------------------------------
+console.log('Timbot is starting.');
 
 // --- Cleverbot init --------------------------------------------------------------------------------------------------
 let cleverbot = null;
@@ -42,8 +49,8 @@ if (twitterNames && twitterNames.length > 0) {
     });
 }
 
-// --- Startup ---------------------------------------------------------------------------------------------------------
-console.log('Timbot is starting.');
+// --- Discord ---------------------------------------------------------------------------------------------------------
+console.log('Connecting to Discord...');
 
 let targetChannels = [];
 let emojiCache = { };
@@ -71,32 +78,10 @@ let getServerEmoji = (emojiName, asText) => {
 
     return null;
 };
+global.getServerEmoji = getServerEmoji;
 
 let syncServerList = (logMembership) => {
-    let nextTargetChannels = [];
-
-    client.guilds.forEach((guild) => {
-        let targetChannel = guild.channels.find("name", config.discord_announce_channel);
-
-        if (!targetChannel) {
-            console.warn('[Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${config.discord_announce_channel} channel!`);
-        } else {
-            let permissions = targetChannel.permissionsFor(guild.me);
-
-            if (logMembership) {
-                console.log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
-            }
-
-            if (!permissions.has("SEND_MESSAGES")) {
-                console.warn('[Discord]', 'Permission problem /!\\', `I do not have SEND_MESSAGES permission on channel #${targetChannel.name} on ${guild.name}: announcement sends will fail.`);
-            }
-
-            nextTargetChannels.push(targetChannel);
-        }
-    });
-
-    console.log('[Discord]', `Discovered ${nextTargetChannels.length} channels to announce to.`);
-    targetChannels = nextTargetChannels;
+    targetChannels = DiscordChannelSync.getChannelList(client, config.discord_announce_channel, logMembership);
 };
 
 client.on('ready', () => {
@@ -110,6 +95,9 @@ client.on('ready', () => {
 
     // Begin Twitch API polling
     TwitchMonitor.start();
+
+    // Activate Food Use integration
+    FooduseMonitor.start();
 
     if (twitterMonitor) {
         // Begin Twitter polling

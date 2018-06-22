@@ -63,6 +63,7 @@ Note that you will need to create a Discord application and bot, and a new Twitc
 |`twitter_access_token_secret`|`string`|User's OAuth Token Secret|
 |`twitter_names`|`array`|Array of Twitter usernames to watch. Do not watch more than 15 users at a time to avoid hitting the rate limit.|
 |`cleverbot_token`|`string`|API Token for Cleverbot. Used to generate general responses. Leave blank to disable functionality (bot will ignore most things).
+|`discord_fooduse_channel`|`string`|Set to a Discord channel name if you want to receive Food Use / Food Dip video alerts there.|
 
 ### Starting timbot
 
