@@ -359,31 +359,33 @@ client.on('message', message => {
             }
         }
 
+        // Food use integration
+        if (txtLower.indexOf("food use") >= 0 || txtLower.indexOf("food dip") >= 0 ||
+            txtLower.indexOf("fooddip") >= 0 || txtLower.indexOf("fooduse") >= 0) {
+            let bobmoji = getServerEmoji("BOB_EATS");
+
+            if (bobmoji) {
+                message.react(bobmoji);
+            }
+        }
+
         // Easter egg: meme
         if (txtLower.indexOf("loss") >= 0) {
-            lossEmoji = getServerEmoji("THINK_ABOUT_LOSS")
+            let lossEmoji = getServerEmoji("THINK_ABOUT_LOSS");
 
             if (lossEmoji) {
                 message.react(lossEmoji);
             }
-
-            if (relationshipMinusEmoji) {
-                message.react(relationshipMinusEmoji);
-            }
-
-            return; // no stacking
         }
 
         if (txtLower.indexOf("meme") >= 0) {
             if (relationshipMinusEmoji) {
                 message.react(relationshipMinusEmoji);
             }
-
-            return; // no stacking
         }
 
         // Easter egg: timOh reaction
-        if (txtNoPunct === "oh" || txtNoPunct.startsWith("oh ")) {
+        if (txtNoPunct === "oh" || txtNoPunct.startsWith("oh.")) {
             let ohEmoji = getServerEmoji("timOh", false);
 
             if (ohEmoji) {
