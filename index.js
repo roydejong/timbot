@@ -385,7 +385,7 @@ client.on('message', message => {
         }
 
         // Easter egg: timOh reaction
-        if (txtNoPunct === "oh" || txtNoPunct.startsWith("oh.")) {
+        if (txtNoPunct === "oh" || txtLower.startsWith("oh.")) {
             let ohEmoji = getServerEmoji("timOh", false);
 
             if (ohEmoji) {
