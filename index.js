@@ -393,6 +393,17 @@ client.on('message', message => {
             }
         }
 
+        // Gay
+        let gayWords = ["gay", "queer", "homo", "pride"];
+
+        for (let i = 0; i < gayWords.length; i++) {
+            let _gayWord = gayWords[i];
+
+            if (txtLower.indexOf(_gayWord) >= 0) {
+                message.react("🏳️‍🌈");
+            }
+        }
+
         // Easter egg: timGuest420 reaction
         if (txtWords.indexOf("grass") >= 0 || txtLower.indexOf("420") >= 0
             || txtWords.indexOf("kush") >= 0 || txtWords.indexOf("weed") >= 0
