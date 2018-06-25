@@ -122,12 +122,14 @@ class FooduseMonitor {
     }
 
     static get feedUrl() {
-        return `${FooduseMonitor.YT_FEED_BASE_URL}?channel_id=${FooduseMonitor.YT_CHANNEL_ID}&orderby=published`;
+        let cacheBuster = Date.now();
+        return `${FooduseMonitor.YT_FEED_BASE_URL}?channel_id=${FooduseMonitor.YT_CHANNEL_ID}&orderby=published&_cacheBust=${cacheBuster}`;
     }
 }
 
 FooduseMonitor.YT_CHANNEL_ID = "UCCuIpl5564hhP8Qpucvu7RA";
 FooduseMonitor.YT_FEED_BASE_URL = "https://www.youtube.com/feeds/videos.xml";
 FooduseMonitor.YT_CHECK_INTERVAL_SECS = 1 * 60;
+FooduseMonitor.ANNOUNCE_COOLDOWN_MINUTES = 15;
 
 module.exports = FooduseMonitor;
