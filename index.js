@@ -301,7 +301,13 @@ client.on('message', message => {
                 } else if (message.member.voiceChannel) {
                     Voice.playYoutubeUrl(message.member.voiceChannel, urls[0])
                         .then(() => {
-                            message.react("🔊");
+                            let danceEmoji = getServerEmoji("feelsdanceman");
+
+                            if (danceEmoji) {
+                                message.react(danceEmoji);
+                            } else {
+                                message.react("🔊");
+                            }
 
                             message.channel.stopTyping();
                         })
@@ -417,10 +423,46 @@ client.on('message', message => {
             || txtWords.indexOf("dimebag") >= 0 || txtWords.indexOf("toke") >= 0
             || txtWords.indexOf("blaze") >= 0 || txtWords.indexOf("blunt") >= 0
         ) {
-            let guest420Emoji = getServerEmoji("timGuest420", false);
+            let fourtwentyEmoji = getServerEmoji("420blazeit", false);
 
-            if (guest420Emoji) {
-                message.react(guest420Emoji);
+            if (fourtwentyEmoji) {
+                message.react(fourtwentyEmoji);
+            }
+        }
+
+        // 4head
+        if (txtWords.indexOf('4head') >= 0) {
+            let fourheadEmoji = getServerEmoji("4head", false);
+
+            if (fourheadEmoji) {
+                message.react(fourheadEmoji);
+            }
+        }
+
+        // hahaa
+        if (txtWords.indexOf('hahaa') >= 0) {
+            let hahaaEmoji = getServerEmoji("hahaa", false);
+
+            if (hahaaEmoji) {
+                message.react(hahaaEmoji);
+            }
+        }
+
+        // beat saber
+        if (txtWords.indexOf('beatsaber') >= 0 || txtLower.indexOf('beat saber') >= 0) {
+            let beatsaberEmoji = getServerEmoji("beatsaber", false);
+
+            if (beatsaberEmoji) {
+                message.react(beatsaberEmoji);
+            }
+        }
+
+        // clap
+        if (txtWords.indexOf('clap') >= 0) {
+            let clapEmoji = getServerEmoji("ClapClap", false);
+
+            if (clapEmoji) {
+                message.react(clapEmoji);
             }
         }
     } catch (e) {
