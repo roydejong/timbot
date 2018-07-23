@@ -12,6 +12,7 @@ const Voice = require("./voice");
 const TwitterMonitor = require("./twitter-monitor");
 const FooduseMonitor = require("./fooduse-monitor");
 const DiscordChannelSync = require("./discord-channel-sync");
+const ElizaHelper = require('./eliza');
 
 // --- Startup ---------------------------------------------------------------------------------------------------------
 console.log('Timbot is starting.');
@@ -227,6 +228,9 @@ client.on('message', message => {
 
         // Determine whether *we* were mentioned
         let timbotWasMentioned = (txtWords.indexOf("timbot") >= 0 || mentionedUsernames.indexOf("Timbot") >= 0);
+        let elizaWasMentioned = (txtWords.indexOf("eliza") >= 0);
+        let elizaWasOn = ElizaHelper.isActiveForUser(message.author);
+        let elizaModeOn = (elizaWasMentioned || elizaWasOn);
 
         // Anti spam timer
         let lastTextReply = lastTextReplyAt || 0;
@@ -286,7 +290,26 @@ client.on('message', message => {
         let relationshipMinusEmoji = getServerEmoji("timMinus", false);
 
         // Timbot mentions
-        if (timbotWasMentioned) {
+        if (timbotWasMentioned || elizaWasMentioned) {
+            // --- Eliza start ---
+            if (elizaModeOn) {
+                let isEnding = txtNoPunct.indexOf("goodbye") >= 0 || txtNoPunct.indexOf("good bye") >= 0;
+                let isStarting = !isEnding && !elizaWasOn;
+
+                message.channel.startTyping();
+
+                if (isEnding) {
+                    ElizaHelper.end(message);
+                } else if (isStarting) {
+                    ElizaHelper.start(message);
+                } else {
+                    ElizaHelper.reply(message);
+                }
+
+                return;
+            }
+            // --- Eliza eof ---
+
             let isNegative = (txtWords.indexOf("not") >= 0 || txtLower.indexOf("n't") >= 0 ||
                 txtWords.indexOf("bad") >= 0);
 
