@@ -254,10 +254,12 @@ client.on('message', message => {
                 ttsText += ", ";
                 ttsText += txt;
 
-                try {
-                    Voice.say(message.member.voiceChannel, ttsText);
-                } catch (e) {
-                    console.error('[VoiceResponse]', 'Something broke:', e);
+                if (config.voiced_replies) {
+                    try {
+                        Voice.say(message.member.voiceChannel, ttsText);
+                    } catch (e) {
+                        console.error('[VoiceResponse]', 'Something broke:', e);
+                    }
                 }
             }
 

@@ -56,7 +56,8 @@ Note that you will need to create a Discord application and bot, and a new Twitc
 |`twitch_channels`|`string`|A comma-separated list of channel names to monitor. Each channel in this list will be announced once it goes live after previously being offline.`|
 |`discord_announce_channel`|`string`|The name of the channel the bot will announce to when a channel goes live, without the `#` token. Ensure the channel exists, and that the Bot has permissions to post messages to that channel.`|
 |`discord_mentions`|`object`|Key-value object that can map channel names to the Discord mention that should be made in the announcement message (for example, `@here` or `@everyone`). Channel names must be lowercase. Mentions are only included in the initial message.`|
-|`voice_enabled`|`boolean`|Enables Voice based easter egg stuff and TTS. Only works on Linux and requires `festival` to be installed. Bad for performance and will eat your disk space up quickly, probably. Don't use this in any remotely serious environment.|
+|`voice_enabled`|`boolean`|Enables Voice based easter egg stuff and TTS. Only works on Linux and requires `festival` to be installed. Bad for performance and will eat your disk space up quickly, probably. Don't use this in any remotely serious environment. TTS output files are stored to `/tmp` and will be re-used if available.|
+|`voiced_replies`|`boolean`|If enabled, Timbot's replies in text chat will also be sent as TTS the voice channel it is on on that server.|
 |`twitter_api_key`|`string`|Consumer API Token|
 |`twitter_api_secret`|`string`|Consumer API Secret|
 |`twitter_access_token`|`string`|User's OAuth Token|

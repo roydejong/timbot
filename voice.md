@@ -5,10 +5,10 @@ Timbot can join Voice channels, to synthesise bad jokes, run announcements and p
 This is probably not a good idea for any Discord that takes itself even remotely seriously so it is turned off by default.
 
 Features and behavior when enabled:
-- Will join users in voice channels and announce itself.
-- Will TTS any replies it makes in text chat to users.
+- Will join users in voice channels and say Hi.
+- Will TTS any replies it makes in text chat to users (if `voiced_replies` is enabled in config).
 - Will announce when any configured channel goes live.
-- Specific chat commands can make it play stuff or shut up.
+- Specific chat commands can make it play audio from YouTube, or cancel playback altogether.
 
 ## Setup
 
@@ -44,6 +44,8 @@ For example:
  
 ### Shut up
 
-Tag Timbot and tell it to "shut up" or "stop". All playback will be stopped. For example:
+Tag or mention Timbot and tell it to shut up. All playback will be stopped. For example, these all work:
 
     @Timbot shut up
+    shut up Timbot
+    timbot shutup
