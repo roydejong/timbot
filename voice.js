@@ -81,14 +81,10 @@ class Voice {
                         });
 
                         try {
-                            this.sayOnConnection(channelConnection, "Oh.");
+                            this.sayOnConnection(channelConnection, "Hello.");
                         } catch (e) {
                             console.error('[Voice]', '(Greeter)', 'Failed to run channel greeter [1]:', e);
                         }
-
-                        setTimeout(() => {
-                            this.greetChannel(voiceChannel);
-                        }, 2500);
                     })
                     .catch((err) => {
                         console.error('[Voice]', '(Channel)', 'Error in voice channel connection: ', err);
@@ -127,44 +123,6 @@ class Voice {
         }
 
         return true;
-    }
-
-    /**
-     * Greets the peeps in a channel.
-     *
-     * @param {VoiceChannel} voiceChannel
-     */
-    static greetChannel(voiceChannel) {
-        let channelId = voiceChannel.id.toString();
-        let channelConnection = this.openConnections[channelId] || null;
-
-        if (!channelConnection) {
-            return;
-        }
-
-        let peopleText = "friend";
-        let memberNames = [];
-
-        voiceChannel.members.forEach((member) => {
-            if (member.user.username.toLowerCase() === "timbot") {
-                // Let's not greet ourselves
-                return;
-            }
-
-            memberNames.push(member.user.username.spacifyCamels());
-        });
-
-        if (memberNames.length > 0) {
-            peopleText = memberNames.joinEnglishList();
-        }
-
-        let greetingMsg = `Hello there ${peopleText}. It's me, Timbot. Your favorite bud.`;
-
-        try {
-            this.sayOnConnection(channelConnection, greetingMsg);
-        } catch (e) {
-            console.error('[Voice]', '(Greeter)', 'Failed to run channel greeter [2]:', e);
-        }
     }
 
     /**
