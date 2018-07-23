@@ -326,7 +326,7 @@ client.on('message', message => {
                 }
 
             // Shut up -------------------------------------------------------------------------------------------------
-            } else if (txtNoPunct.indexOf("shut up") >= 0 || txtNoPunct.indexOf("stop") >= 0 || txtNoPunct.indexOf("shutup") >= 0) {
+            } else if (txtNoPunct.indexOf("shut up") >= 0 || txtNoPunct.indexOf("shutup") >= 0) {
                 if (message.member.voiceChannel) {
                     Voice.shutUp(message.member.voiceChannel);
                     message.react("🔇");
