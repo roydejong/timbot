@@ -12,7 +12,7 @@ class DiscordChannelSync {
         let nextTargetChannels = [];
 
         client.guilds.forEach((guild) => {
-            let targetChannel = guild.channels.find("name", channelName);
+            let targetChannel = guild.channels.find(g => g.name === channelName);
 
             if (!targetChannel) {
                 console.warn('[Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${channelName} channel!`);

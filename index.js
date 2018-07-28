@@ -62,7 +62,7 @@ let getServerEmoji = (emojiName, asText) => {
     }
 
     try {
-        let emoji = client.emojis.find("name", emojiName);
+        let emoji = client.emojis.find(e => e.name === emojiName);
 
         if (emoji) {
             emojiCache[emojiName] = emoji;
