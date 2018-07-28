@@ -13,6 +13,8 @@ This bot is built on Node.js. If you do not yet have Node installed, download an
 
 https://nodejs.org/en/download/
 
+**It is recommended to use the LTS version of Node (v8).** Node 10 may not yet be (fully) supported.
+
 ### Install timbot
 
 To set up timbot, download the latest [repository ZIP](https://github.com/roydejong/timbot/archive/master.zip) or clone it using `git`:
@@ -23,7 +25,7 @@ Once installed, enter the directory and install the dependencies:
 
     cd timbot
     npm install
-   
+
 ### Configuration
  
 To configure timbot, copy the included `config-sample.json` to `config.json` and enter or customize the values in the file.
