@@ -11,7 +11,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "clevertype": "^2.0.4",
-    "discord.js": "github:discordjs/discord.js#master",
+    "discord.js": "github:discordjs/discord.js#f67d682223a0b0d330ec34738a3dfe51a50f3d8f",
     "feedparser": "^2.2.9",
     "ffmpeg-binaries": "^3.2.2-3",
     "node-opus": "^0.2.7",
