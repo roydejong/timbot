@@ -280,7 +280,7 @@ class Voice {
         return new Promise((resolve, reject) => {
             try {
                 const streamOptions = {seek: 0, volume: 1};
-                let stream = ytdl(youtubeUrl, {filter: 'audioonly'});
+                let stream = ytdl(youtubeUrl, {quality: 'highestaudio'});
                 let dispatcher = connection.play(stream, streamOptions);
                 resolve(dispatcher);
             } catch (err) {
