@@ -214,8 +214,8 @@ class Voice {
         return this.textToWav(text)
             .then((wavFileName) => {
                 // TTS ok, do playback on connection
-                if (important || !connection.dispatcher || connection.dispatcher.paused ||
-                    connection.dispatcher.destroyed || (connection.dispatcher._writableState && connection.dispatcher._writableState.ended)) {
+                if (important || !connection.dispatcher || connection.dispatcher.paused || connection.dispatcher.destroyed || (connection.dispatcher._writableState && connection.dispatcher._writableState.ended)) {
+                    console.log(wavFileName);
                     connection.play(wavFileName);
                 }
             })
