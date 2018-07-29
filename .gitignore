@@ -1,4 +1,12 @@
-/.idea/
+# Node
 /node_modules/
-config.json
+
+# Log files
 /*.log
+
+# Config
+/config.json
+/config.*.json
+
+# IDE
+/.idea/
