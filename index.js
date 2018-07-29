@@ -448,7 +448,7 @@ client.on('message', message => {
             || txtWords.indexOf("dimebag") >= 0 || txtWords.indexOf("toke") >= 0
             || txtWords.indexOf("blaze") >= 0 || txtWords.indexOf("blunt") >= 0
         ) {
-            let fourtwentyEmoji = getServerEmoji("420blazeit", false);
+            let fourtwentyEmoji = getServerEmoji("timGuest420", false);
 
             if (fourtwentyEmoji) {
                 message.react(fourtwentyEmoji);
