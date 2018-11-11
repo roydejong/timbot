@@ -12,8 +12,23 @@ class ApiServer {
 
         this.app = express();
 
+        // Configure websockets extension
+        const expressWs = require('express-ws')(this.app);
+
         // Configure serving of static assets for admin react app frontend
         this.app.use(express.static('admin/build'));
+
+        // API websocket route
+        this.app.get('/', function(req, res, next) {
+            res.end();
+        });
+
+        this.app.ws('/api', (ws, req) => {
+            ws.on('message', function(msg) {
+                console.log(msg);
+            });
+            console.log('socket', req.testing);
+        });
 
         // Start listening
         this.app.listen(apiPort, '0.0.0.0')
