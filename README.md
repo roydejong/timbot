@@ -40,3 +40,16 @@ If you start Timbot as follows:
 This would attempt to load the `config/production.json` config file.
 
 We've provided a default configuration template for your convenience under `config/default.json`.
+
+For details on how to set up each section, refer to "Advanced configuration" below.
+
+## Advanced configuration
+
+### Registering your Discord bot
+
+Timbot will log in to Discord as a bot. You'll need to register that Bot as an application from the [Discord Developer Portal](https://discordapp.com/developers/applications/).
+
+From the dev portal, click on "Create an application" and fill out the basic details. Next, visit the "Bot" tab and follow the instructions under "Build-a-Bot" to register a bot to your application.
+
+You'll need to copy your **token** and set it in your Timbot config file under **`discord.token`** (remember: keep this token a secret!).
+

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Timbot\n"
-"POT-Creation-Date: 2018-11-11 01:45+0100\n"
-"PO-Revision-Date: 2018-11-11 01:45+0100\n"
+"POT-Creation-Date: 2018-11-11 02:18+0100\n"
+"PO-Revision-Date: 2018-11-11 02:19+0100\n"
 "Last-Translator: Roy de Jong <poedit@roydejong.net>\n"
 "Language-Team: timbot@roydejong.net\n"
 "Language: en\n"
@@ -14,8 +14,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SearchPath-0: .\n"
 
+#: Core/Timbot.js:18
+msgid "Configuration file could not be loaded ({0})."
+msgstr ""
+
 #: Core/Timbot.js:22
-msgid "The configuration file could not be loaded."
+msgid "Configuration loaded ({0})."
+msgstr ""
+
+#: Core/Timbot.js:29
+msgid "Timbot has started successfully."
 msgstr ""
 
 #~ msgid "test"

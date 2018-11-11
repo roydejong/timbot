@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "config": "^2.0.1",
+    "discord.js": "^11.4.2",
     "gettext-parser": "^3.0.0",
     "node-gettext": "^2.0.0",
     "winston": "^3.1.0"

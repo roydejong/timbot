@@ -1,7 +1,3 @@
-const winston = require('winston');
-const LogHelper = require('./Helper/LogHelper');
-const Lang = require('./Intl/Lang');
-
 /**
  * Timbot core.
  */
@@ -23,8 +19,11 @@ class Timbot {
             process.exit(Timbot.EXIT_CODE_STARTUP_CONFIG_ERROR);
             return;
         } else {
-            Timbot.log.i(_("Configuration loaded ({0}).", process.env.NODE_ENV));
+            Timbot.log.i(_("Configuration loaded successfully ({0}).", process.env.NODE_ENV));
         }
+
+        // Init Discord core
+        this._initDiscord();
 
         // Startup complete
         Timbot.log.i(_("Timbot has started successfully."));
@@ -55,6 +54,8 @@ class Timbot {
      * @private
      */
     static _initLang() {
+        const Lang = require('./Intl/Lang');
+
         this.lang = new Lang();
         this.lang.bind();
     }
@@ -65,6 +66,8 @@ class Timbot {
      * @private
      */
     static _initLogging() {
+        const winston = require('winston');
+
         const consoleFormat = winston.format.combine(
             winston.format.colorize(),
             winston.format.timestamp(),
@@ -81,7 +84,22 @@ class Timbot {
             ]
         });
 
+        const LogHelper = require('./Helper/LogHelper');
+
         this.log = new LogHelper(this._logger);
+        this.log.i(_("Timbot is starting."));
+    }
+
+    /**
+     * Init step: Connect to Discord and log in as bot.
+     *
+     * @private
+     */
+    static _initDiscord() {
+        const Discord = require('../Discord/Discord');
+
+        this.discord = new Discord(this.config);
+        this.discord.start();
     }
 }
 
