@@ -1,3 +1,9 @@
 {
-
+  "discord": {
+    "token": ""
+  },
+  "admin": {
+    "enabled": true,
+    "apiPort": 4269
+  }
 }

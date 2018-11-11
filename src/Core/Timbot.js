@@ -15,18 +15,29 @@ class Timbot {
 
         // Config result check
         if (!configOk) {
-            Timbot.log.e(_("Configuration file could not be loaded ({0}).", process.env.NODE_ENV));
+            Timbot.log.e(_("Configuration file could not be loaded ({0}).", process.env.NODE_ENV || "default"));
             process.exit(Timbot.EXIT_CODE_STARTUP_CONFIG_ERROR);
             return;
         } else {
-            Timbot.log.i(_("Configuration loaded successfully ({0}).", process.env.NODE_ENV));
+            Timbot.log.i(_("Configuration loaded successfully ({0}).", process.env.NODE_ENV || "default"));
         }
 
+        // Start admin server
+        this._initAdmin();
+
         // Init Discord core
-        this._initDiscord();
+        try {
+            this._initDiscord();
+        } catch (e) {
+            Timbot.log.e(_("Startup failure: There seems a problem with the Discord integration [{0}].",
+                e.message || "Unknown error"));
+
+            process.exit(Timbot.EXIT_CODE_STARTUP_DISCORD_ERROR);
+            return;
+        }
 
         // Startup complete
-        Timbot.log.i(_("Timbot has started successfully."));
+        Timbot.log.i(_("✔️ Timbot has started successfully. Ready for action."));
     }
 
     /**
@@ -91,6 +102,20 @@ class Timbot {
     }
 
     /**
+     * Init step: Initialize Admin API server / management web interface.
+     *
+     * @private
+     */
+    static _initAdmin() {
+        const ApiServer = require('../Admin/ApiServer');
+
+        if (this.config.admin.enabled) {
+            this.api = new ApiServer(this.config);
+            this.api.start();
+        }
+    }
+
+    /**
      * Init step: Connect to Discord and log in as bot.
      *
      * @private
@@ -109,5 +134,6 @@ Timbot.EXIT_CODE_ERROR_GENERIC = 1;
 
 // User defined exit codes (range 64 - 113 per http://www.tldp.org/LDP/abs/html/exitcodes.html)
 Timbot.EXIT_CODE_STARTUP_CONFIG_ERROR = 64;
+Timbot.EXIT_CODE_STARTUP_DISCORD_ERROR = 64;
 
 module.exports = Timbot;

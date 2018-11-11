@@ -4,13 +4,16 @@
   "description": "A Magic Discord Chatbot",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "devstart": "export NODE_ENV=dev && node src/index.js",
+    "setup": "echo '>>>>>> Going to install Timbot dependencies...' && yarn install && echo '>>>>>> Going to build Timbot admin panel (react app)...' && cd admin && yarn install && yarn build && echo '>>>>>> Timbot should now be ready for use! Use `yarn start`.'"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
     "config": "^2.0.1",
     "discord.js": "^11.4.2",
+    "express": "^4.16.4",
     "gettext-parser": "^3.0.0",
     "node-gettext": "^2.0.0",
     "winston": "^3.1.0"

@@ -21,9 +21,11 @@ If you want to run a copy of Timbot or develop it, you will need to make sure to
 
 To get started, [download the latest stable Timbot release](https://github.com/roydejong/timbot/releases) from the GitHub repository and extract it somewhere.
 
-Open a terminal and navigate to your Timbot installation directory. Run the following command to download and install all of Timbot's dependencies and packages:
+Open a terminal and navigate to your Timbot installation directory. Run the following command:
 
-    yarn install
+    yarn setup
+
+This will perform installation of all dependencies, and build the static content for the admin panel.
 
 ### Configuration and operation
 

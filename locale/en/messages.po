@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Timbot\n"
-"POT-Creation-Date: 2018-11-11 02:18+0100\n"
-"PO-Revision-Date: 2018-11-11 02:19+0100\n"
+"POT-Creation-Date: 2018-11-11 03:37+0100\n"
+"PO-Revision-Date: 2018-11-11 03:37+0100\n"
 "Last-Translator: Roy de Jong <poedit@roydejong.net>\n"
 "Language-Team: timbot@roydejong.net\n"
 "Language: en\n"
@@ -14,16 +14,52 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SearchPath-0: .\n"
 
+#: Admin/ApiServer.js:21
+msgid "Admin: Could not listen on *:{0}: {1}."
+msgstr ""
+
+#: Admin/ApiServer.js:24
+msgid "Admin: API server listening on *:{0}."
+msgstr ""
+
 #: Core/Timbot.js:18
 msgid "Configuration file could not be loaded ({0})."
 msgstr ""
 
 #: Core/Timbot.js:22
-msgid "Configuration loaded ({0})."
+msgid "Configuration loaded successfully ({0})."
 msgstr ""
 
-#: Core/Timbot.js:29
-msgid "Timbot has started successfully."
+#: Core/Timbot.js:32
+msgid "Startup failure: There seems a problem with the Discord integration [{0}]."
+msgstr ""
+
+#: Core/Timbot.js:40
+msgid "✔️ Timbot has started successfully. Ready for action."
+msgstr ""
+
+#: Core/Timbot.js:101
+msgid "Timbot is starting."
+msgstr ""
+
+#: Discord/Discord.js:40
+msgid "Error occurred during Discord login: {0}."
+msgstr ""
+
+#: Discord/Discord.js:46
+msgid "Retrying Discord connection in {0} seconds..."
+msgstr ""
+
+#: Discord/Discord.js:74
+msgid "Logged in to Discord as {0} (member of {1} server(s))."
+msgstr ""
+
+#: Discord/Discord.js:79
+msgid "Discord connection failed."
+msgstr ""
+
+#: Discord/Discord.js:85
+msgid "Discord connection error: {0}."
 msgstr ""
 
 #~ msgid "test"
