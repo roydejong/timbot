@@ -1,12 +1,5 @@
-# Node
-/node_modules/
-
-# Log files
-/*.log
-
-# Config
-/config.json
-/config.*.json
+# Node modules
+/node_modules
 
 # IDE
-/.idea/
+.idea
