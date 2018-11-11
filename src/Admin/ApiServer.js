@@ -30,7 +30,18 @@ class ApiServer {
 
                 switch (msg.op) {
                     case "activity":
-                        Timbot.discord.client.user.setActivity(msg.text);
+                        Timbot.discord.client.user.setActivity(msg.text, {
+                            type: msg.type,
+                            url: msg.url
+                        });
+
+                        ws.send(JSON.stringify({
+                            "op": "status",
+                            "text": msg.text,
+                            "type": msg.type,
+                            "url": msg.url
+                        }));
+
                         break;
                 }
                 // --- Temp test stuff ---
