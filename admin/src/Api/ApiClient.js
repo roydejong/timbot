@@ -21,7 +21,6 @@ export default class ApiClient {
         this.ws.addEventListener('open', () => {
             this.retrySecs = 3;
             console.info('[api]', 'Websocket open.');
-            this.ws.send('test');
         });
 
         this.ws.addEventListener('message', (msg) => {

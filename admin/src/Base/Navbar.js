@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './Navbar.css';
 import NavbarItem from "./NavbarItem";
 import ApiClient from "../Api/ApiClient";
@@ -48,7 +48,7 @@ export default class Navbar extends Component {
                     </a>
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul className="navbar-nav mr-auto">
-                            <NavbarItem title={"Dashboard"}/>
+                            <NavbarItem title={"Dashboard"} active={true}/>
                         </ul>
                         <span className="navbar-text">
                             {this.state.isConnected && <span>Connected to Timbot</span>}

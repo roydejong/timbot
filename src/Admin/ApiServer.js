@@ -25,9 +25,16 @@ class ApiServer {
 
         this.app.ws('/api', (ws, req) => {
             ws.on('message', function(msg) {
-                console.log(msg);
+                // --- Temp test stuff ---
+                msg = JSON.parse(msg);
+
+                switch (msg.op) {
+                    case "activity":
+                        Timbot.discord.client.user.setActivity(msg.text);
+                        break;
+                }
+                // --- Temp test stuff ---
             });
-            console.log('socket', req.testing);
         });
 
         // Start listening
