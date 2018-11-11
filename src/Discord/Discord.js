@@ -12,6 +12,7 @@ class Discord {
      */
     constructor(config) {
         this.config = config;
+        this.timeoutSecs = 3;
 
         if (!this.config.has("discord.token")) {
             throw new Error("No `discord.token` has been configured. Cannot log in to Discord.");
@@ -31,8 +32,34 @@ class Discord {
         }
 
         this.client = new DiscordJs.Client();
+
         this._bindClientEvents();
-        this.client.login(this.config.discord.token);
+
+        this.client.login(this.config.discord.token)
+            .catch((err) => {
+                Timbot.log.e(_("Error occurred during Discord login: {0}.", err || "Unknown error"));
+                this._scheduleRetry();
+            });
+    }
+
+    _scheduleRetry() {
+        Timbot.log.w(_("Retrying Discord connection in {0} seconds...", this.timeoutSecs));
+
+        if (this.retryTimeout) {
+            clearTimeout(this.retryTimeout);
+            this.retryTimeout = null;
+        }
+
+        this.retryTimeout = setTimeout(() => {
+            this.start();
+        }, this.timeoutSecs * 1000);
+
+        if (this.timeoutSecs >= Discord.RETRY_TIMEOUT_MAX_SECS) {
+            this.timeoutSecs = Discord.RETRY_TIMEOUT_MAX_SECS;
+        } else {
+            this.timeoutSecs *= 1.5;
+            this.timeoutSecs = Math.round(this.timeoutSecs);
+        }
     }
 
     /**
@@ -43,19 +70,20 @@ class Discord {
     _bindClientEvents() {
         // Event: Logged in to Discord, bot is online.
         this.client.on('ready', () => {
-            Timbot.log.i(_("Logged in to Discord as {0} ({1} servers).", this.client.user.tag, this.client.guilds.size));
+            this.timeoutSecs = 30;
+            Timbot.log.i(_("Logged in to Discord as {0} (member of {1} server(s)).", this.client.user.tag, this.client.guilds.size));
         });
 
         // Event: Error, we have been disconnected and the client will no longer attempt to fix it.
         this.client.on('disconnect', () => {
-            Timbot.log.w(_("Disconnected from Discord. Retrying connection..."));
-            this.start();
+            Timbot.log.e(_("Discord connection failed."));
+            this._scheduleRetry();
         });
 
         // Event: Connection error
         this.client.on('error', (error) => {
-            Timbot.log.e(_("Discord connection error occurred: {0}. Retrying connection...", error));
-            this.start();
+            Timbot.log.e(_("Discord connection error: {0}.", error));
+            this._scheduleRetry();
         });
 
         // Event: Incoming message
@@ -64,5 +92,7 @@ class Discord {
         });
     }
 }
+
+Discord.RETRY_TIMEOUT_MAX_SECS = 300;
 
 module.exports = Discord;
