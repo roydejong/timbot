@@ -35,6 +35,11 @@ class ApiServer {
                 }
                 // --- Temp test stuff ---
             });
+
+            ws.send(JSON.stringify({
+                "op": "status",
+                "text": "test123"
+            }));
         });
 
         // Start listening

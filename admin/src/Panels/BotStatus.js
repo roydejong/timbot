@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 // import './BotStatus.css';
 import ApiRequest from "../Api/ApiRequest";
+import ApiClient from "../Api/ApiClient";
 
 export default class BotStatus extends Component {
     constructor(props) {
@@ -12,6 +13,21 @@ export default class BotStatus extends Component {
             statusText: "",
             statusChanged: false
         };
+    }
+
+    componentDidMount() {
+        ApiClient.subscribe("BotStatus", "status", this.handleActivityUpdate.bind(this));
+    }
+
+    componentWillUnmount() {
+        ApiClient.unsubscribe("BotStatus");
+    }
+
+    handleActivityUpdate(data) {
+        this.setState({
+            statusChanged: false,
+            statusText: data.text || ""
+        });
     }
 
     handleStatusTextChange(e) {
@@ -55,10 +71,10 @@ export default class BotStatus extends Component {
     render() {
         return (
             <div className="card">
-                <h5 className="card-header">Status and activity</h5>
+                <h5 className="card-header"><i className={"mdi mdi-gamepad"}/> Status and activity</h5>
                 <div className="card-body">
-                    <p className="card-text text-secondary">You can change the bot's current status / activity here.</p>
-                    <form>
+                    <p className="card-text text-secondary">You can override the bot's current status / activity here.</p>
+                    <div>
                         <div className={"form-group"}>
                             {Object.keys(BotStatus.TYPES).map((key) => {
                                 let label = BotStatus.TYPES[key];
@@ -82,7 +98,7 @@ export default class BotStatus extends Component {
                                    disabled={this.state.busy || this.state.statusType === BotStatus.TYPE_AUTO}
                             />
                         </div>
-                    </form>
+                    </div>
                     {this.state.statusChanged &&
                     <button className="btn btn-primary" disabled={this.state.busy}
                             onClick={this.handleUpdateClick.bind(this)}>Update status</button>

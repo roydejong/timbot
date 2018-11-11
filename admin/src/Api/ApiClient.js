@@ -2,6 +2,7 @@ export default class ApiClient {
     static init(wsUrl) {
         this.wsUrl = wsUrl;
         this.retrySecs = 3;
+        this.subscriptions = {};
         this.open();
     }
 
@@ -24,7 +25,8 @@ export default class ApiClient {
         });
 
         this.ws.addEventListener('message', (msg) => {
-            console.info('[api]', 'Websocket message:', msg);
+            console.info('[api]', 'Websocket message:', msg.data)
+            ApiClient.handleIncoming(msg.data);
         });
 
         this.ws.addEventListener('close', () => {
@@ -35,6 +37,24 @@ export default class ApiClient {
         this.ws.addEventListener('error', (err) => {
             console.error('[api]', 'Websocket error:', err);
         });
+    }
+
+    static handleIncoming(msgData) {
+        msgData = JSON.parse(msgData);
+
+        if (msgData.constructor === Array) {
+            msgData.forEach((msg) => {
+                this.handleIncomingMessage(msg);
+            });
+        } else {
+            this.handleIncomingMessage(msgData);
+        }
+    }
+
+    static handleIncomingMessage(msg) {
+        if (msg.op) {
+            this.emit(msg.op, msg);
+        }
     }
 
     static get isConnected() {
@@ -63,6 +83,32 @@ export default class ApiClient {
             this.retrySecs *= ApiClient.RETRY_FACTOR;
             this.retrySecs = Math.round(this.retrySecs);
         }
+    }
+
+    static subscribe(subscriptionId, eventType, callback) {
+        this.subscriptions[subscriptionId] = {
+            id: subscriptionId,
+            type: eventType,
+            fn: callback
+        };
+    }
+
+    static emit(eventType, data) {
+        Object.keys(this.subscriptions).forEach((key) => {
+            let sub = this.subscriptions[key];
+
+            if (sub && sub.type === eventType) {
+                try {
+                    sub.fn(data);
+                } catch (e) {
+                    console.error('[api/callback]', `(${sub.type}:${sub.id})`, e.message || "Unknown error");
+                }
+            }
+        });
+    }
+
+    static unsubscribe(subscriptionId) {
+        delete this.subscriptions[subscriptionId];
     }
 }
 
