@@ -21,14 +21,14 @@ class DiscordActivityManager {
         // Admin API: Send current status when client connects
         Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT,
             this.handleApiUserConnected.bind(this));
+
+        // Load last state from database
+        this.dbLoadState();
     }
 
     handleEvent(eventName, data) {
         if (eventName === Features.EVENT_DISCORD_READY) {
-            // Apply default activity with a small delay (if we do it instantly on login it tends to not work)
-            setTimeout(() => {
-                this.applyActivity();
-            }, 1000);
+            this.applyActivity();
         }
     }
 
@@ -53,7 +53,45 @@ class DiscordActivityManager {
         this._currentUrl = url;
         this._currentPresence = presence;
 
+        this.dbWriteState();
         this.applyActivity();
+    }
+
+    dbWriteState() {
+        try {
+            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
+                .run(this._currentPresence, "presence");
+
+            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
+                .run(this._currentType, "activity_type");
+
+            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
+                .run(this._currentText, "activity_text");
+
+            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
+                .run(this._currentUrl, "activity_url");
+
+            Timbot.log.d(_("[Activity] tried 2 rite"));
+        } catch (e) {
+            Timbot.log.e(_("[Activity] Could not write state to database: {0}", e.message));
+        }
+    }
+
+    dbLoadState() {
+        try {
+            this._currentPresence = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
+                .get("presence").value) || "online";
+            this._currentType = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
+                .get("activity_type").value) || "online";
+            this._currentText = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
+                .get("activity_text").value) || "";
+            this._currentUrl = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
+                .get("activity_url").value) || "";
+
+            this.applyActivity();
+        } catch (e) {
+            Timbot.log.e(_("[Activity] Could not load state from database: {0}", e.message));
+        }
     }
 
     /**
@@ -88,16 +126,18 @@ class DiscordActivityManager {
      */
     applyActivity() {
         try {
-            Timbot.discord.client.user.setStatus(this._currentPresence);
-            Timbot.discord.client.user.setAFK(this._currentPresence === "idle");
-            Timbot.discord.client.user.setActivity(this._currentText, {
-                type: (this._currentType === DiscordActivityManager.ACTIVITY_AUTO ?
-                    DiscordActivityManager.ACTIVITY_PLAYING : this._currentType),
-                url: this._currentUrl
-            });
+            if (Timbot.discord.client && Timbot.discord.client.user) {
+                Timbot.discord.client.user.setStatus(this._currentPresence);
+                Timbot.discord.client.user.setAFK(this._currentPresence === "idle");
+                Timbot.discord.client.user.setActivity(this._currentText, {
+                    type: (this._currentType === DiscordActivityManager.ACTIVITY_AUTO ?
+                        DiscordActivityManager.ACTIVITY_PLAYING : this._currentType),
+                    url: this._currentUrl
+                });
 
-            Timbot.log.d(_("[Activity] Updated discord activity: {2} {0} {1}", this._currentType, this._currentText,
-                this._currentPresence));
+                Timbot.log.d(_("[Activity] Updated discord activity: {2} {0} {1}", this._currentType, this._currentText,
+                    this._currentPresence));
+            }
         } catch (e) {
             Timbot.log.w(_("[Activity] Failed to update current activity: {0}", e.message));
         }
