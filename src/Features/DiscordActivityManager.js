@@ -24,6 +24,11 @@ class DiscordActivityManager {
 
         // Load last state from database
         this.dbLoadState();
+
+        // Period update timer (discord sometimes doesn't show our status so be pushy about it)
+        this.applyInterval = setInterval(() => {
+            this.applyActivity();
+        }, 60 * 1000);
     }
 
     handleEvent(eventName, data) {
