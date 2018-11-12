@@ -37,6 +37,10 @@ export default class BotActivityManager extends Component {
 
     handleActivityTypeChange(key) {
         this.setState({ activityType: key, statusChanged: true });
+
+        if (key === BotActivityManager.TYPE_AUTO) {
+            this.setState({ statusText: "", statusUrl: "" });
+        }
     }
 
     handlePresenceTypeChange(key) {
