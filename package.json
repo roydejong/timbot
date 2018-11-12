@@ -11,6 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^5.0.1",
     "config": "^2.0.1",
     "discord.js": "^11.4.2",
     "express": "^4.16.4",

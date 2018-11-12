@@ -25,6 +25,9 @@ class Timbot {
         // Start admin server
         this._initAdmin();
 
+        // Init database
+        this._initDb();
+
         // Init Discord core
         try {
             this._initDiscord();
@@ -116,6 +119,18 @@ class Timbot {
             this.api = new ApiServer(this.config);
             this.api.start();
         }
+    }
+
+    /**
+     * Init step: Initialize sqlite database.
+     *
+     * @private
+     */
+    static _initDb() {
+        const Db = require('../Data/Db');
+
+        this.db = new Db(this.config);
+        this.db.init();
     }
 
     /**
