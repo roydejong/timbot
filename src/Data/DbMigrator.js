@@ -87,6 +87,7 @@ class DbMigrator {
                     .run(migrationTopVersion, "db_version");
 
                 Timbot.log.i(_("[DB] Database has been migrated to version {0}.", migrationTopVersion));
+                return true;
             } catch (e) {
                 Timbot.log.e(_("[DB] >>> Could not write database version: {0}", e.message));
                 return false;
