@@ -9,7 +9,8 @@ export default class BotActivityManager extends Component {
 
         this.state = {
             busy: false,
-            statusType: BotActivityManager.TYPE_AUTO,
+            activityType: BotActivityManager.TYPE_AUTO,
+            presenceType: BotActivityManager.PRESENCE_ONLINE,
             statusText: "",
             statusUrl: "",
             statusChanged: false
@@ -26,15 +27,20 @@ export default class BotActivityManager extends Component {
 
     handleActivityUpdate(data) {
         this.setState({
-            statusType: data.type || BotActivityManager.TYPE_AUTO,
+            activityType: data.type || BotActivityManager.TYPE_AUTO,
+            presenceType: data.presence || BotActivityManager.PRESENCE_ONLINE,
             statusText: data.text || "",
             statusUrl: data.url || "",
             statusChanged: false
         });
     }
 
-    handleStatusTypeChange(key) {
-        this.setState({ statusType: key, statusChanged: true });
+    handleActivityTypeChange(key) {
+        this.setState({ activityType: key, statusChanged: true });
+    }
+
+    handlePresenceTypeChange(key) {
+        this.setState({ presenceType: key, statusChanged: true });
     }
 
     handleStatusTextChange(e) {
@@ -58,9 +64,10 @@ export default class BotActivityManager extends Component {
 
         let req = new ApiRequest({
             op: "activity",
-            type: this.state.statusType,
+            type: this.state.activityType,
             text: this.state.statusText,
-            url: this.state.statusUrl
+            url: this.state.statusUrl,
+            presence: this.state.presenceType
         });
 
         req.send()
@@ -85,14 +92,31 @@ export default class BotActivityManager extends Component {
                     <p className="card-text text-secondary">You can override the bot's current status / activity here.</p>
                     <div>
                         <div className={"form-group"}>
+                            <label>Activity type:</label>&nbsp;&nbsp;&nbsp;
                             {Object.keys(BotActivityManager.TYPES).map((key) => {
                                 let label = BotActivityManager.TYPES[key];
 
                                 return (
                                     <div className="form-check form-check-inline" key={key}>
                                         <input className="form-check-input" type="radio" id={key} value={key}
-                                               checked={this.state.statusType === key}
-                                               onChange={this.handleStatusTypeChange.bind(this, key)}
+                                               checked={this.state.activityType === key}
+                                               onChange={this.handleActivityTypeChange.bind(this, key)}
+                                        />
+                                        <label className="form-check-label" htmlFor={key}>{label}</label>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className={"form-group"}>
+                            <label>Presence:</label>&nbsp;&nbsp;&nbsp;
+                            {Object.keys(BotActivityManager.PRESENCE_TYPES).map((key) => {
+                                let label = BotActivityManager.PRESENCE_TYPES[key];
+
+                                return (
+                                    <div className="form-check form-check-inline" key={key}>
+                                        <input className="form-check-input" type="radio" id={key} value={key}
+                                               checked={this.state.presenceType === key}
+                                               onChange={this.handlePresenceTypeChange.bind(this, key)}
                                         />
                                         <label className="form-check-label" htmlFor={key}>{label}</label>
                                     </div>
@@ -105,17 +129,17 @@ export default class BotActivityManager extends Component {
                                    placeholder={"Activity name"}
                                    onChange={this.handleStatusTextChange.bind(this)}
                                    value={this.state.statusText}
-                                   disabled={this.state.busy || this.state.statusType === BotActivityManager.TYPE_AUTO}
+                                   disabled={this.state.busy || this.state.activityType === BotActivityManager.TYPE_AUTO}
                             />
                         </div>
-                        {this.state.statusType === BotActivityManager.TYPE_STREAMING &&
+                        {this.state.activityType === BotActivityManager.TYPE_STREAMING &&
                             <div className="form-group">
                                 <label htmlFor="BotStatusUrl">URL:</label>
                                 <input type="text" className="form-control" id="BotStatusUrl"
                                        onChange={this.handleStatusUrlChange.bind(this)}
                                        placeholder={"Twitch stream URL"}
                                        value={this.state.statusUrl}
-                                       disabled={this.state.busy || this.state.statusType === BotActivityManager.TYPE_AUTO}
+                                       disabled={this.state.busy || this.state.activityType === BotActivityManager.TYPE_AUTO}
                                 />
                             </div>
                         }
@@ -129,6 +153,17 @@ export default class BotActivityManager extends Component {
         );
     }
 }
+
+BotActivityManager.PRESENCE_ONLINE = "online";
+BotActivityManager.PRESENCE_IDLE = "idle";
+BotActivityManager.PRESENCE_INVISIBLE = "invisible";
+BotActivityManager.PRESENCE_DND = "dnd";
+
+BotActivityManager.PRESENCE_TYPES = { };
+BotActivityManager.PRESENCE_TYPES[BotActivityManager.PRESENCE_ONLINE] = "Online";
+BotActivityManager.PRESENCE_TYPES[BotActivityManager.PRESENCE_IDLE] = "Idle";
+BotActivityManager.PRESENCE_TYPES[BotActivityManager.PRESENCE_INVISIBLE] = "Invisible";
+BotActivityManager.PRESENCE_TYPES[BotActivityManager.PRESENCE_DND] = "Do not disturb";
 
 BotActivityManager.TYPE_AUTO = "AUTO";
 BotActivityManager.TYPE_PLAYING = "PLAYING";

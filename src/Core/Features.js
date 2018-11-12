@@ -25,8 +25,7 @@ class Features {
             try {
                 featureObj = new (require(`../Features/${featureName}`));
             } catch (e) {
-                Timbot.log.e(_("Feature could not be loaded: {0} {1}\r\n{2}", featureName,
-                    (isBuiltIn ? "[Built-in]" : ""), e));
+                Timbot.log.e(_("[Features] Failed to load built-in feature {0}: {1}", featureName, e.message));
 
                 return false;
             }
@@ -36,7 +35,7 @@ class Features {
 
         // Run the feature's enable script, then mark as enabled
         if (featureObj) {
-            Timbot.log.i(_("Feature enabled: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
+            Timbot.log.i(_("[Features] Enabled: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
 
             try {
                 if (featureObj.enable) {
@@ -46,14 +45,30 @@ class Features {
                 this._enabledFeatures[featureName] = featureObj;
                 return true;
             } catch (e) {
-                Timbot.log.e(_(">>> Error during feature enable script: {0}", e.message));
+                Timbot.log.e(_("[Features] >>> Error during feature enable script: {0}", e.message));
                 return false;
             }
         } else {
             // Fallback if feature failed to be require()'d
-            Timbot.log.w(_("Feature was not be loaded: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
+            Timbot.log.w(_("[Features] Could not load {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
             return false;
         }
+    }
+
+    emitEvent(eventName, data) {
+        Object.keys(this._enabledFeatures).forEach((key) => {
+            if (this._enabledFeatures.hasOwnProperty(key)) {
+                let featureObj = this._enabledFeatures[key];
+
+                if (featureObj && featureObj.handleEvent) {
+                    try {
+                        featureObj.handleEvent(eventName, data);
+                    } catch (e) {
+                        Timbot.log.e(_("[Features] Event handler {0} failed for feature {1}: {2}", eventName, key, e.message));
+                    }
+                }
+            }
+        });
     }
 
     disableFeature(featureName) {
@@ -62,7 +77,7 @@ class Features {
             return false;
         }
 
-        Timbot.log.i(_("Feature disabled: {0}", featureName));
+        Timbot.log.i(_("[Features] Feature disabled: {0}", featureName));
 
         // Grab the feature instance and run disable script
         let featureObj = this._enabledFeatures[featureName];
@@ -72,7 +87,7 @@ class Features {
                 featureObj.disable();
             }
         } catch (e) {
-            Timbot.log.e(_(">>> Error during feature disable script: {0}", e.message));
+            Timbot.log.e(_("[Features] >>> Error during feature disable script: {0}", e.message));
             return false;
         }
 
@@ -89,4 +104,7 @@ class Features {
     }
 }
 
+Features.EVENT_DISCORD_READY = "discord_ready";
+
 module.exports = Features;
+

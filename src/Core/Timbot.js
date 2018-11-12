@@ -90,7 +90,7 @@ class Timbot {
         );
 
         this._logger = winston.createLogger({
-            level: 'info',
+            level: 'debug',
             transports: [
                 new winston.transports.Console({
                     format: consoleFormat

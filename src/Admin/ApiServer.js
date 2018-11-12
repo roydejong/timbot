@@ -41,7 +41,7 @@ class ApiServer {
 
         if (!opCode) {
             try {
-                Timbot.log.d(_("[ApiServer] Received a message without op header: {0}", JSON.stringify(data)));
+                Timbot.log.d(_("[API] Received a message without op header: {0}", JSON.stringify(data)));
             } catch (e) { }
 
             return;
@@ -59,7 +59,7 @@ class ApiServer {
                     break;
                 }
             } catch (e) {
-                Timbot.log.e(_("[ApiServer] Error occurred in a route handler ({0}): {1}", opCode, e));
+                Timbot.log.e(_("[API] Error occurred in a route handler ({0}): {1}", opCode, e));
             }
         }
     }
@@ -117,7 +117,7 @@ class ApiServer {
 
                     this._emitApi(ws, msgParsed);
                 } catch (e) {
-                    Timbot.log.d(_("[ApiServer] Could not parse incoming message as JSON: {0}", msg.toString()));
+                    Timbot.log.d(_("[API] Could not parse incoming message as JSON: {0}", msg.toString()));
                 }
             }));
 
@@ -130,7 +130,7 @@ class ApiServer {
                 Timbot.log.e(_("Admin: Could not listen on *:{0}: {1}.", apiPort, err));
             });
 
-        Timbot.log.i(_("Admin: API server listening on *:{0}.", apiPort));
+        Timbot.log.i(_("[API] Admin server listening on *:{0}.", apiPort));
     }
 }
 

@@ -1,5 +1,6 @@
-const Timbot = require('../Core/Timbot');
 const DiscordJs = require('discord.js');
+const Timbot = require('../Core/Timbot');
+const Features = require('../Core/Features');
 
 /**
  * Timbot Discord Bot Manager
@@ -42,6 +43,11 @@ class Discord {
             });
     }
 
+    /**
+     * Helper function to schedule the next connection retry attempt, in case of failure.
+     *
+     * @private
+     */
     _scheduleRetry() {
         Timbot.log.w(_("Retrying Discord connection in {0} seconds...", this.timeoutSecs));
 
@@ -71,7 +77,13 @@ class Discord {
         // Event: Logged in to Discord, bot is online.
         this.client.on('ready', () => {
             this.timeoutSecs = 30;
+
             Timbot.log.i(_("Logged in to Discord as {0} (member of {1} server(s)).", this.client.user.tag, this.client.guilds.size));
+
+            Timbot.features.emitEvent(Features.EVENT_DISCORD_READY, {
+                client: this.client,
+                user: this.client.user
+            });
         });
 
         // Event: Error, we have been disconnected and the client will no longer attempt to fix it.
