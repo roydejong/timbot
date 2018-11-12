@@ -1,8 +1,12 @@
 export default class ApiClient {
     static init(wsUrl) {
         this.wsUrl = wsUrl;
+
         this.retrySecs = 3;
+
         this.subscriptions = {};
+        this.greedyCache = { };
+
         this.open();
     }
 
@@ -93,7 +97,21 @@ export default class ApiClient {
         };
     }
 
+    static subscribeGreedy(subscriptionId, eventType, callback) {
+        this.subscribe(subscriptionId, eventType, callback);
+
+        if (typeof this.greedyCache[eventType] !== "undefined" && this.greedyCache[eventType]) {
+            try {
+                callback(this.greedyCache[eventType]);
+            } catch (e) {
+                console.error('[api/callback]', `(greedy:${eventType}:${subscriptionId})`, e.message || "Unknown error");
+            }
+        }
+    }
+
     static emit(eventType, data) {
+        this.greedyCache[eventType] = data;
+
         Object.keys(this.subscriptions).forEach((key) => {
             let sub = this.subscriptions[key];
 

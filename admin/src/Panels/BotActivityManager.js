@@ -18,7 +18,7 @@ export default class BotActivityManager extends Component {
     }
 
     componentDidMount() {
-        ApiClient.subscribe("Panels_BotStatus", "activity", this.handleActivityUpdate.bind(this));
+        ApiClient.subscribeGreedy("Panels_BotStatus", "activity", this.handleActivityUpdate.bind(this));
     }
 
     componentWillUnmount() {
