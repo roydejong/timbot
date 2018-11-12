@@ -1,16 +1,18 @@
 import React, {Component} from 'react';
-import Navbar from "./Base/Navbar";
-import BotActivityManager from "./Panels/BotActivityManager";
+import {BrowserRouter as Router, Link, Route} from "react-router-dom";
+import DashPage from "./Pages/DashPage";
+import ReactionsPage from "./Pages/ReactionsPage";
 
 class App extends Component {
     render() {
         return (
             <div className="App">
-                <Navbar/>
-                <div className={"container"}>
-                    <br />
-                    <BotActivityManager/>
-                </div>
+                <Router>
+                    <div>
+                        <Route path={"/"} exact={true} component={DashPage}/>
+                        <Route path={"/reactions"} exact={true} component={ReactionsPage}/>
+                    </div>
+                </Router>
             </div>
         );
     }

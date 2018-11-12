@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import './Navbar.css';
 import NavbarItem from "./NavbarItem";
 import ApiClient from "../Api/ApiClient";
+import PropTypes from 'prop-types';
 
 export default class Navbar extends Component {
     constructor(props) {
@@ -37,7 +38,16 @@ export default class Navbar extends Component {
         }
     }
 
+    getTabs() {
+        return {
+            "dash": { label: "Dashboard", href: "/" },
+            "reactions": { label: "Reactions", href: "/reactions" }
+        };
+    }
+
     render() {
+        let tabs = this.getTabs();
+
         return (
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div className={"container"}>
@@ -48,7 +58,13 @@ export default class Navbar extends Component {
                     </a>
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul className="navbar-nav mr-auto">
-                            <NavbarItem title={"Dashboard"} active={true}/>
+                            {Object.keys(tabs).map((tabId) => {
+                                let tab = tabs[tabId];
+
+                                return <NavbarItem key={tabId} title={tab.label}
+                                                   href={tab.href}
+                                                   active={tabId === this.props.activeTab}/>
+                            })}
                         </ul>
                         <span className="navbar-text">
                             {this.state.isConnected && <span>Connected to Timbot</span>}
@@ -61,3 +77,7 @@ export default class Navbar extends Component {
         );
     }
 }
+
+Navbar.propTypes = {
+    activeTab: PropTypes.string.isRequired
+};

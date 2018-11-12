@@ -1,6 +1,7 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import './NavbarItem.css';
 import PropTypes from 'prop-types';
+import {Link} from "react-router-dom";
 
 export default class NavbarItem extends Component {
     render() {
@@ -12,10 +13,10 @@ export default class NavbarItem extends Component {
 
         return (
             <li className={classNames.join(' ')}>
-                <a className="nav-link" href={"##"}>
+                <Link className="nav-link" to={this.props.href}>
                     {this.props.title}
                     {this.props.active && <span className="sr-only">(current)</span>}
-                </a>
+                </Link>
             </li>
         );
     }
@@ -23,5 +24,6 @@ export default class NavbarItem extends Component {
 
 NavbarItem.propTypes = {
     active: PropTypes.bool,
+    href: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired
 };
