@@ -3,13 +3,13 @@ import React, {Component} from 'react';
 import ApiRequest from "../Api/ApiRequest";
 import ApiClient from "../Api/ApiClient";
 
-export default class BotStatus extends Component {
+export default class BotActivityManager extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             busy: false,
-            statusType: BotStatus.TYPE_AUTO,
+            statusType: BotActivityManager.TYPE_AUTO,
             statusText: "",
             statusUrl: "",
             statusChanged: false
@@ -17,7 +17,7 @@ export default class BotStatus extends Component {
     }
 
     componentDidMount() {
-        ApiClient.subscribe("Panels_BotStatus", "status", this.handleActivityUpdate.bind(this));
+        ApiClient.subscribe("Panels_BotStatus", "activity", this.handleActivityUpdate.bind(this));
     }
 
     componentWillUnmount() {
@@ -26,7 +26,7 @@ export default class BotStatus extends Component {
 
     handleActivityUpdate(data) {
         this.setState({
-            statusType: data.type || BotStatus.TYPE_AUTO,
+            statusType: data.type || BotActivityManager.TYPE_AUTO,
             statusText: data.text || "",
             statusUrl: data.url || "",
             statusChanged: false
@@ -85,8 +85,8 @@ export default class BotStatus extends Component {
                     <p className="card-text text-secondary">You can override the bot's current status / activity here.</p>
                     <div>
                         <div className={"form-group"}>
-                            {Object.keys(BotStatus.TYPES).map((key) => {
-                                let label = BotStatus.TYPES[key];
+                            {Object.keys(BotActivityManager.TYPES).map((key) => {
+                                let label = BotActivityManager.TYPES[key];
 
                                 return (
                                     <div className="form-check form-check-inline" key={key}>
@@ -105,17 +105,17 @@ export default class BotStatus extends Component {
                                    placeholder={"Activity name"}
                                    onChange={this.handleStatusTextChange.bind(this)}
                                    value={this.state.statusText}
-                                   disabled={this.state.busy || this.state.statusType === BotStatus.TYPE_AUTO}
+                                   disabled={this.state.busy || this.state.statusType === BotActivityManager.TYPE_AUTO}
                             />
                         </div>
-                        {this.state.statusType === BotStatus.TYPE_STREAMING &&
+                        {this.state.statusType === BotActivityManager.TYPE_STREAMING &&
                             <div className="form-group">
                                 <label htmlFor="BotStatusUrl">URL:</label>
                                 <input type="text" className="form-control" id="BotStatusUrl"
                                        onChange={this.handleStatusUrlChange.bind(this)}
                                        placeholder={"Twitch stream URL"}
                                        value={this.state.statusUrl}
-                                       disabled={this.state.busy || this.state.statusType === BotStatus.TYPE_AUTO}
+                                       disabled={this.state.busy || this.state.statusType === BotActivityManager.TYPE_AUTO}
                                 />
                             </div>
                         }
@@ -130,19 +130,19 @@ export default class BotStatus extends Component {
     }
 }
 
-BotStatus.TYPE_AUTO = "AUTO";
-BotStatus.TYPE_PLAYING = "PLAYING";
-BotStatus.TYPE_STREAMING = "STREAMING";
-BotStatus.TYPE_LISTENING = "LISTENING";
-BotStatus.TYPE_WATCHING = "WATCHING";
+BotActivityManager.TYPE_AUTO = "AUTO";
+BotActivityManager.TYPE_PLAYING = "PLAYING";
+BotActivityManager.TYPE_STREAMING = "STREAMING";
+BotActivityManager.TYPE_LISTENING = "LISTENING";
+BotActivityManager.TYPE_WATCHING = "WATCHING";
 
-BotStatus.TYPES = { };
-BotStatus.TYPES[BotStatus.TYPE_AUTO] = "Automatic";
-BotStatus.TYPES[BotStatus.TYPE_PLAYING] = "Playing";
-BotStatus.TYPES[BotStatus.TYPE_STREAMING] = "Streaming";
-BotStatus.TYPES[BotStatus.TYPE_LISTENING] = "Listening";
-BotStatus.TYPES[BotStatus.TYPE_WATCHING] = "Watching";
+BotActivityManager.TYPES = { };
+BotActivityManager.TYPES[BotActivityManager.TYPE_AUTO] = "Automatic";
+BotActivityManager.TYPES[BotActivityManager.TYPE_PLAYING] = "Playing";
+BotActivityManager.TYPES[BotActivityManager.TYPE_STREAMING] = "Streaming";
+BotActivityManager.TYPES[BotActivityManager.TYPE_LISTENING] = "Listening";
+BotActivityManager.TYPES[BotActivityManager.TYPE_WATCHING] = "Watching";
 
-BotStatus.propTypes = {
+BotActivityManager.propTypes = {
 
 };

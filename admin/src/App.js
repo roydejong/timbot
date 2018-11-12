@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import Navbar from "./Base/Navbar";
-import BotStatus from "./Panels/BotStatus";
+import BotActivityManager from "./Panels/BotActivityManager";
 
 class App extends Component {
     render() {
@@ -9,7 +9,7 @@ class App extends Component {
                 <Navbar/>
                 <div className={"container"}>
                     <br />
-                    <BotStatus/>
+                    <BotActivityManager/>
                 </div>
             </div>
         );

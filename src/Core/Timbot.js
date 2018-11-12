@@ -36,6 +36,9 @@ class Timbot {
             return;
         }
 
+        // Init Features
+        this._initFeatures();
+
         // Startup complete
         Timbot.log.i(_("✔️ Timbot has started successfully. Ready for action."));
     }
@@ -125,6 +128,18 @@ class Timbot {
 
         this.discord = new Discord(this.config);
         this.discord.start();
+    }
+
+    /**
+     * Init step: Load features/plugins.
+     *
+     * @private
+     */
+    static _initFeatures() {
+        const Features = require('./Features');
+
+        this.features = new Features();
+        this.features.start();
     }
 }
 
