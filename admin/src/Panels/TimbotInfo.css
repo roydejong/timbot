@@ -63,5 +63,7 @@
 .DiscordCard__text-status {
     margin-top: 4px;
     font-size: 12px;
-    color: #99AAB5;
+    /*color: #99AAB5;*/
+    /*color: #2ecc71;*/
+    color: #7289DA;
 }

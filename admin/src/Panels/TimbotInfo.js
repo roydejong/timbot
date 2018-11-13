@@ -34,7 +34,7 @@ export default class TimbotInfo extends Component {
 
         return (
             <div className="card TimbotInfo">
-                <h5 className="card-header"><i className={"mdi mdi-info-circle"}/> Timbot</h5>
+                <h5 className="card-header"><i className={"mdi mdi-robot"}/> Timbot</h5>
                 <div className="card-body">
                     <p className={"card-text text-secondary"}>
                         Version {this.state.data.version}<br />
@@ -46,7 +46,7 @@ export default class TimbotInfo extends Component {
                         <div className={"DiscordCard__text"}>
                             <div className={"DiscordCard__text-name"}>{this.state.data.discord.username}</div>
                             <div className={"DiscordCard__text-sub"}>{this.state.data.discord.tag}</div>
-                            <div className={"DiscordCard__text-status"}>{"Connected to Discord"}</div>
+                            <div className={"DiscordCard__text-status"}><i className={"mdi mdi-discord"}/> {"Logged in to Discord"}</div>
                         </div>
                     </div>
                     }
