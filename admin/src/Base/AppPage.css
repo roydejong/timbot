@@ -1,0 +1,13 @@
+.AppPage {
+    border-top: 3px solid #7289DA;
+}
+
+.AppPage__subtitle {
+    padding: .75rem 0;
+    background: #2C2F33;
+    color: #fff;
+    font-weight: 500;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}

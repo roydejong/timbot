@@ -3,7 +3,8 @@ const Timbot = require('./Timbot');
 class Features {
     static get builtin() {
         return [
-            "DiscordActivityManager"
+            "DiscordActivityManager",
+            "TimbotInfo"
         ];
     };
 

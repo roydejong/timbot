@@ -9,6 +9,12 @@ export default class AppPage extends Component {
             <div className={"AppPage"}>
                 <Navbar activeTab={this.props.activeTab}/>
 
+                <div className={"AppPage__subtitle"}>
+                    <div className={"container"}>
+                        <span>{this.props.title}</span>
+                    </div>
+                </div>
+
                 <div className={"AppPage__content"}>
                     {this.props.children}
                 </div>
@@ -18,5 +24,6 @@ export default class AppPage extends Component {
 }
 
 AppPage.propTypes = {
-    activeTab: PropTypes.string.isRequired
+    activeTab: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired
 };

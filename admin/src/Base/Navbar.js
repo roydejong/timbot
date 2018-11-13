@@ -40,8 +40,8 @@ export default class Navbar extends Component {
 
     getTabs() {
         return {
-            "dash": { label: "Dashboard", href: "/" },
-            "reactions": { label: "Reactions", href: "/reactions" }
+            "dash": { label: "Dashboard", href: "/", icon: <i className={"mdi mdi-home"}/> },
+            "reactions": { label: "Reactions", href: "/reactions", icon: <i className={"mdi mdi-chat"}/> }
         };
     }
 
@@ -62,14 +62,23 @@ export default class Navbar extends Component {
                                 let tab = tabs[tabId];
 
                                 return <NavbarItem key={tabId} title={tab.label}
-                                                   href={tab.href}
+                                                   href={tab.href} icon={tab.icon}
                                                    active={tabId === this.props.activeTab}/>
                             })}
                         </ul>
                         <span className="navbar-text">
-                            {this.state.isConnected && <span>Connected to Timbot</span>}
-                            {!this.state.isConnected && <span>Connecting to Timbot</span>}
-                            <div className={"navbar-status " + (this.state.isConnected ? "navbar-status--ok" : "navbar-status--busy")}/>
+                            <div className={"navbar-conn"}>
+                                {this.state.isConnected && <span>Connected to Timbot</span>}
+                                {!this.state.isConnected && <span>Connecting to Timbot</span>}
+                                <div className={"navbar-status " + (this.state.isConnected ? "navbar-status--ok" : "navbar-status--busy")}/>
+                            </div>
+                            <a className={"discord-button"} href={"https://discord.gg/cEFTnKb"}
+                               title={"Timbot discord for support, development and discussion"}
+                               target={"_blank"}
+                            >
+                                <i className={"mdi mdi-discord"}/>
+                                <span>Discord</span>
+                            </a>
                         </span>
                     </div>
                 </div>

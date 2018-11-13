@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 
 export default class NavbarItem extends Component {
     render() {
-        let classNames = ["nav-item"];
+        let classNames = ["nav-item NavbarItem"];
 
         if (this.props.active) {
             classNames.push("active");
@@ -14,6 +14,7 @@ export default class NavbarItem extends Component {
         return (
             <li className={classNames.join(' ')}>
                 <Link className="nav-link" to={this.props.href}>
+                    {this.props.icon || null}
                     {this.props.title}
                     {this.props.active && <span className="sr-only">(current)</span>}
                 </Link>
@@ -25,5 +26,6 @@ export default class NavbarItem extends Component {
 NavbarItem.propTypes = {
     active: PropTypes.bool,
     href: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired
+    title: PropTypes.string.isRequired,
+    icon: PropTypes.any
 };

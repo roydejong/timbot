@@ -31,3 +31,50 @@
         opacity: 0;
     }
 }
+
+.navbar-text {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-conn {
+    background: rgba(0, 0, 0, .2);
+    padding: 0 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-right: 1rem;
+    height: 32px;
+    line-height: 1.0;
+}
+
+.discord-button {
+    display: inline-flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0 .75rem;
+    height: 32px;
+    border-radius: 4px;
+    color: #fff;
+    background: #7289DA;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color .17s ease,color .17s ease;
+    width: 100%;
+}
+.discord-button i {
+    margin-right: .25rem;
+}
+.discord-button:hover {
+    text-decoration: none;
+    background: #7b94eb;
+    color: #fff;
+}
+.discord-button:active {
+    background: #5a6cac;
+    color: #fff;
+}

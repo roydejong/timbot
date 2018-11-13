@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 // import './BotStatus.css';
 import ApiRequest from "../Api/ApiRequest";
 import ApiClient from "../Api/ApiClient";
+import './BotActivityManager.css';
 
 export default class BotActivityManager extends Component {
     constructor(props) {
@@ -90,7 +91,7 @@ export default class BotActivityManager extends Component {
 
     render() {
         return (
-            <div className="card">
+            <div className="card BotActivityManager">
                 <h5 className="card-header"><i className={"mdi mdi-gamepad"}/> Status and activity</h5>
                 <div className="card-body">
                     <p className="card-text text-secondary">You can override the bot's current status / activity here.</p>
@@ -176,7 +177,7 @@ BotActivityManager.TYPE_LISTENING = "LISTENING";
 BotActivityManager.TYPE_WATCHING = "WATCHING";
 
 BotActivityManager.TYPES = { };
-BotActivityManager.TYPES[BotActivityManager.TYPE_AUTO] = "Automatic";
+// BotActivityManager.TYPES[BotActivityManager.TYPE_AUTO] = "Automatic";
 BotActivityManager.TYPES[BotActivityManager.TYPE_PLAYING] = "Playing";
 BotActivityManager.TYPES[BotActivityManager.TYPE_STREAMING] = "Streaming";
 BotActivityManager.TYPES[BotActivityManager.TYPE_LISTENING] = "Listening";
