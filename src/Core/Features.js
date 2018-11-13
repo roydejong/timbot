@@ -106,6 +106,7 @@ class Features {
 }
 
 Features.EVENT_DISCORD_READY = "discord_ready";
+Features.EVENT_DISCORD_DISCONNECTED = "discord_disconnected";
 
 module.exports = Features;
 

@@ -15,7 +15,7 @@ class TimbotInfo {
     }
 
     handleEvent(eventName) {
-        if (eventName === Features.EVENT_DISCORD_READY) {
+        if (eventName === Features.EVENT_DISCORD_READY || eventName === Features.EVENT_DISCORD_DISCONNECTED) {
             this.broadcastAdminInfo();
         }
     }

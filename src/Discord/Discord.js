@@ -89,6 +89,12 @@ class Discord {
         // Event: Error, we have been disconnected and the client will no longer attempt to fix it.
         this.client.on('disconnect', () => {
             Timbot.log.e(_("Discord connection failed."));
+
+            Timbot.features.emitEvent(Features.EVENT_DISCORD_DISCONNECTED, {
+                client: this.client,
+                user: this.client.user
+            });
+
             this._scheduleRetry();
         });
 
