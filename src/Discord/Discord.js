@@ -24,16 +24,10 @@ class Discord {
      * Starts the Discord bot, or restarts it if necessary.
      */
     start() {
-        if (this.client) {
-            try {
-                this.client.destroy();
-            } catch (e) { }
-
-            this.client = null;
-        }
+        this.stop(true);
+        this.isUp = true;
 
         this.client = new DiscordJs.Client();
-
         this._bindClientEvents();
 
         this.client.login(this.config.discord.token)
@@ -44,11 +38,39 @@ class Discord {
     }
 
     /**
+     * Shuts down the Discord connection gracefully, if needed.
+     */
+    stop(quietMode) {
+        this.isUp = false;
+
+        if (this.retryTimeout) {
+            clearTimeout(this.retryTimeout);
+            this.retryTimeout = null;
+        }
+
+        if (this.client) {
+            try {
+                this.client.destroy();
+
+                if (!quietMode) {
+                    Timbot.log.d(_("[Discord] Connection closed / logged out."));
+                }
+            } catch (e) { }
+
+            this.client = null;
+        }
+    }
+
+    /**
      * Helper function to schedule the next connection retry attempt, in case of failure.
      *
      * @private
      */
     _scheduleRetry() {
+        if (!this.isUp) {
+            return false;
+        }
+
         Timbot.log.w(_("Retrying Discord connection in {0} seconds...", this.timeoutSecs));
 
         if (this.retryTimeout) {
@@ -66,6 +88,8 @@ class Discord {
             this.timeoutSecs *= 1.5;
             this.timeoutSecs = Math.round(this.timeoutSecs);
         }
+
+        return true;
     }
 
     /**
@@ -76,6 +100,8 @@ class Discord {
     _bindClientEvents() {
         // Event: Logged in to Discord, bot is online.
         this.client.on('ready', () => {
+            if (!this.isUp) return;
+
             this.timeoutSecs = 30;
 
             Timbot.log.i(_("Logged in to Discord as {0} (member of {1} server(s)).", this.client.user.tag, this.client.guilds.size));
@@ -88,6 +114,8 @@ class Discord {
 
         // Event: Error, we have been disconnected and the client will no longer attempt to fix it.
         this.client.on('disconnect', () => {
+            if (!this.isUp) return;
+
             Timbot.log.e(_("Discord connection failed."));
 
             Timbot.features.emitEvent(Features.EVENT_DISCORD_DISCONNECTED, {
@@ -100,12 +128,16 @@ class Discord {
 
         // Event: Connection error
         this.client.on('error', (error) => {
+            if (!this.isUp) return;
+
             Timbot.log.e(_("Discord connection error: {0}.", error));
             this._scheduleRetry();
         });
 
         // Event: Incoming message
         this.client.on('message', (message) => {
+            if (!this.isUp) return;
+
             console.log(message.cleanContent);
         });
     }

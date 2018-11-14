@@ -22,6 +22,9 @@ class Timbot {
             Timbot.log.i(_("Configuration loaded successfully ({0}).", process.env.NODE_ENV || "default"));
         }
 
+        // Init signal handlers
+        this._bindSignals();
+
         // Start admin server
         this._initAdmin();
 
@@ -44,6 +47,29 @@ class Timbot {
 
         // Startup complete
         Timbot.log.i(_("✔️ Timbot has started successfully. Ready for action."));
+    }
+
+    /**
+     * Attempt graceful shutdown.
+     */
+    static stop() {
+        // Our goal: shut down everything and anything that's (potentially) keeping our process up
+        Timbot.log.w(_("Shutting down..."));
+
+        // Disconnect from Discord to stop the bot and its events
+        if (this.discord) {
+            this.discord.stop();
+        }
+
+        // Shut down the admin API (express server)
+        if (this.api) {
+            this.api.stop();
+        }
+
+        setTimeout(() => {
+            Timbot.log.i(_("Bye!"));
+            process.exit(0);
+        }, Timbot.SHUT_DOWN_TIME_MS);
     }
 
     /**
@@ -108,6 +134,33 @@ class Timbot {
     }
 
     /**
+     * Init step: Bind process signal handlers (e.g. for CTRL+C / SIGTERM graceful shutdown)
+     *
+     * @private
+     */
+    static _bindSignals() {
+        let handleShutdownSignal = (signal) => {
+            try {
+                Timbot.log.w(_("INTERRUPTED: Process signal received: {0}", signal));
+                this.stop();
+            } catch (e) {
+                try {
+                    Timbot.log.e(_("Error during shutdown: {0}", signal));
+                    process.exit(Timbot.EXIT_CODE_ERROR_GENERIC);
+                    return false;
+                } catch (e2) { }
+            }
+        };
+
+        // Register for all known shutdown/kill signals
+        let shutdownSignals = ["SIGTERM", "SIGINT"];
+
+        shutdownSignals.forEach((signalName) => {
+            process.on(signalName, handleShutdownSignal.bind(this, signalName));
+        });
+    }
+
+    /**
      * Init step: Initialize Admin API server / management web interface.
      *
      * @private
@@ -158,12 +211,14 @@ class Timbot {
     }
 }
 
+Timbot.SHUT_DOWN_TIME_MS = 3000;
+
 // Reserved exit codes (Unix)
 Timbot.EXIT_CODE_OK = 0;
 Timbot.EXIT_CODE_ERROR_GENERIC = 1;
 
 // User defined exit codes (range 64 - 113 per http://www.tldp.org/LDP/abs/html/exitcodes.html)
 Timbot.EXIT_CODE_STARTUP_CONFIG_ERROR = 64;
-Timbot.EXIT_CODE_STARTUP_DISCORD_ERROR = 64;
+Timbot.EXIT_CODE_STARTUP_DISCORD_ERROR = 65;
 
 module.exports = Timbot;

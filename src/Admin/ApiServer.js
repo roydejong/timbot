@@ -125,12 +125,26 @@ class ApiServer {
         });
 
         // Start listening
-        this.app.listen(apiPort, '0.0.0.0')
+        this.server = this.app.listen(apiPort, '0.0.0.0')
             .on('error', (err) => {
                 Timbot.log.e(_("Admin: Could not listen on *:{0}: {1}.", apiPort, err));
             });
 
         Timbot.log.i(_("[API] Admin server listening on *:{0}.", apiPort));
+    }
+
+    stop() {
+        if (this.server) {
+            try {
+                this.server.close();
+
+                Timbot.log.d(_("[API] Server shut down."));
+            } catch (e) { }
+        }
+        
+        this.server = null;
+        this.ws = null;
+        this.app = null;
     }
 }
 
