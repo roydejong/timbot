@@ -78,7 +78,7 @@ class Features {
             return false;
         }
 
-        Timbot.log.i(_("[Features] Feature disabled: {0}", featureName));
+        Timbot.log.d(_("[Features] Feature disabled: {0}", featureName));
 
         // Grab the feature instance and run disable script
         let featureObj = this._enabledFeatures[featureName];
@@ -101,6 +101,13 @@ class Features {
         // Load built-in features
         Features.builtin.forEach((featureName) => {
             this.enableFeature(featureName);
+        });
+    }
+
+    shutdown() {
+        // Disable all features
+        Object.keys(this._enabledFeatures).forEach((featureName) => {
+            this.disableFeature(featureName);
         });
     }
 }

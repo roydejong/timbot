@@ -6,6 +6,10 @@ class Timbot {
      * Initializes Timbot and starts all modules.
      */
     static start() {
+        // Set version
+        this.package = require('../../package.json');
+        this.version = this.package.version;
+
         // Init config
         let configOk = this._loadConfig();
 
@@ -56,6 +60,11 @@ class Timbot {
         // Our goal: shut down everything and anything that's (potentially) keeping our process up
         Timbot.log.w(_("Shutting down..."));
 
+        setTimeout(() => {
+            Timbot.log.i(_("Bye!"));
+            process.exit(0);
+        }, Timbot.SHUT_DOWN_TIME_MS);
+
         // Disconnect from Discord to stop the bot and its events
         if (this.discord) {
             this.discord.stop();
@@ -66,10 +75,10 @@ class Timbot {
             this.api.stop();
         }
 
-        setTimeout(() => {
-            Timbot.log.i(_("Bye!"));
-            process.exit(0);
-        }, Timbot.SHUT_DOWN_TIME_MS);
+        // Disable all features
+        if (this.features) {
+            this.features.shutdown();
+        }
     }
 
     /**
@@ -211,7 +220,7 @@ class Timbot {
     }
 }
 
-Timbot.SHUT_DOWN_TIME_MS = 3000;
+Timbot.SHUT_DOWN_TIME_MS = 1000;
 
 // Reserved exit codes (Unix)
 Timbot.EXIT_CODE_OK = 0;
