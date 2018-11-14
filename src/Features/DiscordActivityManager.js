@@ -33,7 +33,7 @@ class DiscordActivityManager {
 
     handleEvent(eventName, data) {
         if (eventName === Features.EVENT_DISCORD_READY) {
-            this.applyActivity();
+            this.applyActivity(true);
         }
     }
 
@@ -129,19 +129,41 @@ class DiscordActivityManager {
     /**
      * Applies the current activity to the Discord bot.
      */
-    applyActivity() {
+    applyActivity(performReset) {
+        // Q: What the fuck is going on with this function?
+        // A: For some reason Discord won't set our activity sometimes, especially after login. Trying to circumvent it.
         try {
             if (Timbot.discord.client && Timbot.discord.client.user) {
-                Timbot.discord.client.user.setStatus(this._currentPresence);
-                Timbot.discord.client.user.setAFK(this._currentPresence === "idle");
-                Timbot.discord.client.user.setActivity(this._currentText, {
-                    type: (this._currentType === DiscordActivityManager.ACTIVITY_AUTO ?
-                        DiscordActivityManager.ACTIVITY_PLAYING : this._currentType),
-                    url: this._currentUrl
-                });
 
-                Timbot.log.d(_("[Activity] Updated discord activity: {2} {0} {1}", this._currentType, this._currentText,
-                    this._currentPresence));
+                if (performReset) {
+                    // Clear presence
+                    Timbot.discord.client.user.setStatus("online");
+                    Timbot.discord.client.user.setAFK(false);
+
+                    // Clear activity, then apply actual status after a few seconds
+                    Timbot.discord.client.user.setActivity(`Timbot v${Timbot.version} 👋`, { type: DiscordActivityManager.ACTIVITY_WATCHING })
+                        .then(() => {
+                            Timbot.log.d(_("[Activity] Cleared Discord activity"));
+
+                            setTimeout(() => {
+                                this.applyActivity(false);
+                            }, DiscordActivityManager.RESET_DELAY_MS);
+                        });
+                } else {
+                    // Update presence, then activity
+                    Timbot.discord.client.user.setAFK(this._currentPresence === "idle");
+                    Timbot.discord.client.user.setStatus(this._currentPresence)
+                        .then(() => {
+                            Timbot.discord.client.user.setActivity(this._currentText, {
+                                type: (this._currentType === DiscordActivityManager.ACTIVITY_AUTO ?
+                                    DiscordActivityManager.ACTIVITY_PLAYING : this._currentType) || null,
+                                url: this._currentUrl || null
+                            });
+
+                            Timbot.log.d(_("[Activity] Updated discord activity: {2} {0} {1}", this._currentType, this._currentText,
+                                this._currentPresence));
+                        });
+                }
             }
         } catch (e) {
             Timbot.log.w(_("[Activity] Failed to update current activity: {0}", e.message));
@@ -157,6 +179,8 @@ class DiscordActivityManager {
         Timbot.api.broadcast(this.generateStatusMessage());
     }
 }
+
+DiscordActivityManager.RESET_DELAY_MS = 3000;
 
 DiscordActivityManager.API_OP_ACTIVITY_UPDATE = "activity";
 
