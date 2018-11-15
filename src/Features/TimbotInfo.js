@@ -1,26 +1,58 @@
+const Feature = require('./Base/Feature');
 const Timbot = require('../Core/Timbot');
-const Features = require('../Core/Features');
 const ApiServer = require('../Admin/ApiServer');
 const _package = require('../../package');
 
-class TimbotInfo {
+class TimbotInfo extends Feature {
+    constructor() {
+        super();
+
+        this._handleApiUserConnected = this._handleApiUserConnected.bind(this);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * @inheritDoc
+     */
     enable() {
-        Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this.handleApiUserConnected.bind(this));
+        Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this._handleApiUserConnected);
     }
 
-    handleApiUserConnected(ws) {
-        try {
-            ws.send(this.generatePayload());
-        } catch (e) { }
+    /**
+     * @inheritDoc
+     */
+    disable() {
+        Timbot.api.unregisterApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this._handleApiUserConnected);
     }
 
-    handleEvent(eventName) {
-        if (eventName === Features.EVENT_DISCORD_READY || eventName === Features.EVENT_DISCORD_DISCONNECTED) {
+    /**
+     * @inheritDoc
+     */
+    handleEvent(eventName, data) {
+        if (eventName === Feature.EVENT_DISCORD_READY || eventName === Feature.EVENT_DISCORD_DISCONNECTED) {
+            // Discord connected or disconnected, send this update through to the admin panel
             this.broadcastAdminInfo();
         }
     }
 
-    generatePayload() {
+    // -----------------------------------------------------------------------------------------------------------------
+
+    _handleApiUserConnected(ws) {
+        try {
+            ws.send(this._generatePayload());
+        } catch (e) { }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    broadcastAdminInfo() {
+        Timbot.api.broadcast(this._generatePayload());
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    _generatePayload() {
         let discord = {
             connected: false
         };
@@ -43,10 +75,6 @@ class TimbotInfo {
             version: _package.version,
             discord: discord
         });
-    }
-
-    broadcastAdminInfo() {
-        Timbot.api.broadcast(this.generatePayload());
     }
 }
 

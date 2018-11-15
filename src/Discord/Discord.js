@@ -1,6 +1,6 @@
 const DiscordJs = require('discord.js');
 const Timbot = require('../Core/Timbot');
-const Features = require('../Core/Features');
+const Feature = require('../Features/Base/Feature');
 
 /**
  * Timbot Discord Bot Manager
@@ -106,7 +106,7 @@ class Discord {
 
             Timbot.log.i(_("Logged in to Discord as {0} (member of {1} server(s)).", this.client.user.tag, this.client.guilds.size));
 
-            Timbot.features.emitEvent(Features.EVENT_DISCORD_READY, {
+            Timbot.features.emitEvent(Feature.EVENT_DISCORD_READY, {
                 client: this.client,
                 user: this.client.user
             });
@@ -118,7 +118,7 @@ class Discord {
 
             Timbot.log.e(_("Discord connection failed."));
 
-            Timbot.features.emitEvent(Features.EVENT_DISCORD_DISCONNECTED, {
+            Timbot.features.emitEvent(Feature.EVENT_DISCORD_DISCONNECTED, {
                 client: this.client,
                 user: this.client.user
             });

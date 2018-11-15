@@ -1,3 +1,4 @@
+const Feature = require('./Base/Feature');
 const Timbot = require('../Core/Timbot');
 const Features = require('../Core/Features');
 const ApiServer = require('../Admin/ApiServer');
@@ -5,22 +6,29 @@ const ApiServer = require('../Admin/ApiServer');
 /**
  * Manages the Discord bot's current activity / status.
  */
-class DiscordActivityManager {
+class DiscordActivityManager extends Feature {
     constructor() {
+        super();
+
         this._currentType = DiscordActivityManager.ACTIVITY_AUTO;
         this._currentPresence = "online";
         this._currentText = "";
         this._currentUrl = "";
+        this._dirty = false;
+
+        this._handleApiActivityUpdate = this._handleApiActivityUpdate.bind(this);
+        this._handleApiUserConnected = this._handleApiUserConnected.bind(this);
     }
 
-    enable() {
-        // Admin API: Receive activity change requests
-        Timbot.api.registerApi(DiscordActivityManager.API_OP_ACTIVITY_UPDATE,
-            this._handleApiActivityUpdate.bind(this));
+    // -----------------------------------------------------------------------------------------------------------------
 
-        // Admin API: Send current status when client connects
-        Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT,
-            this._handleApiUserConnected.bind(this));
+    /**
+     * @inheritDoc
+     */
+    enable() {
+        // Subscribe to admin events
+        Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this._handleApiUserConnected);
+        Timbot.api.registerApi(DiscordActivityManager.API_OP_ACTIVITY_UPDATE, this._handleApiActivityUpdate);
 
         // Load last state from database
         this._dbLoadState();
@@ -31,18 +39,37 @@ class DiscordActivityManager {
         }, 60 * 1000);
     }
 
+    /**
+     * @inheritDoc
+     */
     disable() {
+        // Unsubscribe from admin events
+        Timbot.api.unregisterApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this._handleApiUserConnected);
+        Timbot.api.unregisterApi(DiscordActivityManager.API_OP_ACTIVITY_UPDATE, this._handleApiActivityUpdate);
+
+        // Clear update timer
         if (this.applyInterval) {
             clearInterval(this.applyInterval);
             this.applyInterval = null;
         }
+
+        // Write state to database if dirty
+        if (this._dirty) {
+            this._dbWriteState();
+        }
     }
 
+    /**
+     * @inheritDoc
+     */
     handleEvent(eventName, data) {
-        if (eventName === Features.EVENT_DISCORD_READY) {
+        if (eventName === Feature.EVENT_DISCORD_READY) {
+            // Perform a full reset & re-apply activity when Discord connects
             this.applyActivity(true);
         }
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Handles requests from admin API to manually override current activity.
@@ -64,10 +91,26 @@ class DiscordActivityManager {
         this._currentText = text;
         this._currentUrl = url;
         this._currentPresence = presence;
+        this._dirty = true;
 
         this._dbWriteState();
         this.applyActivity();
     }
+
+    /**
+     * Handles a new user connecting to the admin panel; sends the current activity info.
+     *
+     * @param ws
+     * @param data
+     * @private
+     */
+    _handleApiUserConnected(ws, data) {
+        try {
+            ws.send(this._generateStatusMessage());
+        } catch (e) { }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Saves the activity state / settings to the database.
@@ -81,6 +124,8 @@ class DiscordActivityManager {
             Timbot.settings.set("activity_text", this._currentText, false);
             Timbot.settings.set("activity_url", this._currentUrl, false);
             Timbot.settings.save();
+
+            this._dirty = false;
         } catch (e) {
             Timbot.log.e(_("[Activity] Could not write state to database: {0}", e.message));
         }
@@ -97,6 +142,7 @@ class DiscordActivityManager {
             this._currentType = Timbot.settings.get("activity_type", DiscordActivityManager.ACTIVITY_PLAYING);
             this._currentText = Timbot.settings.get("activity_text", "");
             this._currentUrl = Timbot.settings.get("activity_url", "");
+            this._dirty = false;
 
             this.applyActivity();
         } catch (e) {
@@ -104,34 +150,7 @@ class DiscordActivityManager {
         }
     }
 
-    /**
-     * Handles a new user connecting to the admin panel; sends the current activity info.
-     *
-     * @param ws
-     * @param data
-     * @private
-     */
-    _handleApiUserConnected(ws, data) {
-        try {
-            ws.send(this._generateStatusMessage());
-        } catch (e) { }
-    }
-
-    /**
-     * Generates a status update message for the admin API.
-     *
-     * @returns {object}
-     * @private
-     */
-    _generateStatusMessage() {
-        return JSON.stringify({
-            "op": DiscordActivityManager.API_OP_ACTIVITY_UPDATE,
-            "type": this._currentType,
-            "presence": this._currentPresence,
-            "text": this._currentText,
-            "url": this._currentUrl
-        });
-    }
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Applies the current activity to the Discord bot.
@@ -184,6 +203,22 @@ class DiscordActivityManager {
      */
     broadcastActivityToAdmin() {
         Timbot.api.broadcast(this._generateStatusMessage());
+    }
+
+    /**
+     * Generates a status update message for the admin API.
+     *
+     * @returns {object}
+     * @private
+     */
+    _generateStatusMessage() {
+        return JSON.stringify({
+            "op": DiscordActivityManager.API_OP_ACTIVITY_UPDATE,
+            "type": this._currentType,
+            "presence": this._currentPresence,
+            "text": this._currentText,
+            "url": this._currentUrl
+        });
     }
 }
 

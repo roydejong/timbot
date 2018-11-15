@@ -59,9 +59,12 @@ class Features {
     emitEvent(eventName, data) {
         Object.keys(this._enabledFeatures).forEach((key) => {
             if (this._enabledFeatures.hasOwnProperty(key)) {
+                /**
+                 * @var featureObj {Feature}
+                 */
                 let featureObj = this._enabledFeatures[key];
 
-                if (featureObj && featureObj.handleEvent) {
+                if (featureObj) {
                     try {
                         featureObj.handleEvent(eventName, data);
                     } catch (e) {
@@ -111,9 +114,6 @@ class Features {
         });
     }
 }
-
-Features.EVENT_DISCORD_READY = "discord_ready";
-Features.EVENT_DISCORD_DISCONNECTED = "discord_disconnected";
 
 module.exports = Features;
 
