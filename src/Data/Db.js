@@ -17,6 +17,15 @@ class Db {
         this.migrate();
     }
 
+    close() {
+        if (this.connection) {
+            this.connection.close();
+            this.connection = null;
+
+            Timbot.log.d(_("[DB] Closed database file."));
+        }
+    }
+
     migrate() {
         let migrator = new DbMigrator(this);
         let ok = migrator.run();

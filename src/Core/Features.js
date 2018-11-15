@@ -84,12 +84,13 @@ class Features {
         Timbot.log.d(_("[Features] Feature disabled: {0}", featureName));
 
         // Grab the feature instance and run disable script
+        /**
+         * @var featureObj {Feature}
+         */
         let featureObj = this._enabledFeatures[featureName];
 
         try {
-            if (featureObj.disable) {
-                featureObj.disable();
-            }
+            featureObj.disable();
         } catch (e) {
             Timbot.log.e(_("[Features] >>> Error during feature disable script: {0}", e.message));
             return false;

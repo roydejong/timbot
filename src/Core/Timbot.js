@@ -89,6 +89,11 @@ class Timbot {
         if (this.settings) {
             this.settings.save();
         }
+
+        // Close database
+        if (this.db) {
+            this.db.close();
+        }
     }
 
     /**
