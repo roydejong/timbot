@@ -16,19 +16,26 @@ class DiscordActivityManager {
     enable() {
         // Admin API: Receive activity change requests
         Timbot.api.registerApi(DiscordActivityManager.API_OP_ACTIVITY_UPDATE,
-            this.handleApiActivityUpdate.bind(this));
+            this._handleApiActivityUpdate.bind(this));
 
         // Admin API: Send current status when client connects
         Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT,
-            this.handleApiUserConnected.bind(this));
+            this._handleApiUserConnected.bind(this));
 
         // Load last state from database
-        this.dbLoadState();
+        this._dbLoadState();
 
         // Period update timer (discord sometimes doesn't show our status so be pushy about it)
         this.applyInterval = setInterval(() => {
             this.applyActivity();
         }, 60 * 1000);
+    }
+
+    disable() {
+        if (this.applyInterval) {
+            clearInterval(this.applyInterval);
+            this.applyInterval = null;
+        }
     }
 
     handleEvent(eventName, data) {
@@ -43,7 +50,7 @@ class DiscordActivityManager {
      * @param ws
      * @param data
      */
-    handleApiActivityUpdate(ws, data) {
+    _handleApiActivityUpdate(ws, data) {
         let type = data.type || DiscordActivityManager.ACTIVITY_AUTO;
         let text = data.text || "";
         let url = data.url || "";
@@ -58,38 +65,38 @@ class DiscordActivityManager {
         this._currentUrl = url;
         this._currentPresence = presence;
 
-        this.dbWriteState();
+        this._dbWriteState();
         this.applyActivity();
     }
 
-    dbWriteState() {
+    /**
+     * Saves the activity state / settings to the database.
+     *
+     * @private
+     */
+    _dbWriteState() {
         try {
-            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
-                .run(this._currentPresence, "presence");
-
-            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
-                .run(this._currentType, "activity_type");
-
-            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
-                .run(this._currentText, "activity_text");
-
-            Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
-                .run(this._currentUrl, "activity_url");
+            Timbot.settings.set("presence", this._currentPresence, false);
+            Timbot.settings.set("activity_type", this._currentType, false);
+            Timbot.settings.set("activity_text", this._currentText, false);
+            Timbot.settings.set("activity_url", this._currentUrl, false);
+            Timbot.settings.save();
         } catch (e) {
             Timbot.log.e(_("[Activity] Could not write state to database: {0}", e.message));
         }
     }
 
-    dbLoadState() {
+    /**
+     * Loads the Discord last activity state / settings from the database.
+     *
+     * @private
+     */
+    _dbLoadState() {
         try {
-            this._currentPresence = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
-                .get("presence").value) || "online";
-            this._currentType = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
-                .get("activity_type").value) || "online";
-            this._currentText = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
-                .get("activity_text").value) || "";
-            this._currentUrl = (Timbot.db.connection.prepare("SELECT `value` FROM `settings` WHERE `key` = ?")
-                .get("activity_url").value) || "";
+            this._currentPresence = Timbot.settings.get("presence", "online");
+            this._currentType = Timbot.settings.get("activity_type", DiscordActivityManager.ACTIVITY_PLAYING);
+            this._currentText = Timbot.settings.get("activity_text", "");
+            this._currentUrl = Timbot.settings.get("activity_url", "");
 
             this.applyActivity();
         } catch (e) {
@@ -102,10 +109,11 @@ class DiscordActivityManager {
      *
      * @param ws
      * @param data
+     * @private
      */
-    handleApiUserConnected(ws, data) {
+    _handleApiUserConnected(ws, data) {
         try {
-            ws.send(this.generateStatusMessage());
+            ws.send(this._generateStatusMessage());
         } catch (e) { }
     }
 
@@ -113,8 +121,9 @@ class DiscordActivityManager {
      * Generates a status update message for the admin API.
      *
      * @returns {object}
+     * @private
      */
-    generateStatusMessage() {
+    _generateStatusMessage() {
         return JSON.stringify({
             "op": DiscordActivityManager.API_OP_ACTIVITY_UPDATE,
             "type": this._currentType,
@@ -174,7 +183,7 @@ class DiscordActivityManager {
      * Broadcasts the current activity configuration to any admin API clients.
      */
     broadcastActivityToAdmin() {
-        Timbot.api.broadcast(this.generateStatusMessage());
+        Timbot.api.broadcast(this._generateStatusMessage());
     }
 }
 

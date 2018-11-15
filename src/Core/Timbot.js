@@ -26,14 +26,15 @@ class Timbot {
             Timbot.log.i(_("Configuration loaded successfully ({0}).", process.env.NODE_ENV || "default"));
         }
 
-        // Init signal handlers
+        // Init process signal handlers
         this._bindSignals();
 
-        // Start admin server
+        // Start admin API server
         this._initAdmin();
 
-        // Init database
+        // Init database and load settings from it
         this._initDb();
+        this._initSettings();
 
         // Init Discord core
         try {
@@ -78,6 +79,11 @@ class Timbot {
         // Disable all features
         if (this.features) {
             this.features.shutdown();
+        }
+
+        // Commit any outstanding settings changes to the database
+        if (this.settings) {
+            this.settings.save();
         }
     }
 
@@ -155,9 +161,10 @@ class Timbot {
             } catch (e) {
                 try {
                     Timbot.log.e(_("Error during shutdown: {0}", signal));
-                    process.exit(Timbot.EXIT_CODE_ERROR_GENERIC);
-                    return false;
-                } catch (e2) { }
+                } catch (e2) {
+                } finally {
+                    process.exit(Timbot.EXIT_CODE_UNSAFE_SHUTDOWN);
+                }
             }
         };
 
@@ -196,6 +203,18 @@ class Timbot {
     }
 
     /**
+     * Init step: Initialize settings helper.
+     *
+     * @private
+     */
+    static _initSettings() {
+        const Settings = require('../Data/Settings');
+
+        this.settings = new Settings(this.db);
+        this.settings.load();
+    }
+
+    /**
      * Init step: Connect to Discord and log in as bot.
      *
      * @private
@@ -229,5 +248,6 @@ Timbot.EXIT_CODE_ERROR_GENERIC = 1;
 // User defined exit codes (range 64 - 113 per http://www.tldp.org/LDP/abs/html/exitcodes.html)
 Timbot.EXIT_CODE_STARTUP_CONFIG_ERROR = 64;
 Timbot.EXIT_CODE_STARTUP_DISCORD_ERROR = 65;
+Timbot.EXIT_CODE_UNSAFE_SHUTDOWN = 66;
 
 module.exports = Timbot;
