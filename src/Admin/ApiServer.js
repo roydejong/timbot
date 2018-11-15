@@ -31,6 +31,26 @@ class ApiServer {
     }
 
     /**
+     * Unregisters an operation handler from the Admin API Websocket.
+     *
+     * @param {string} opCode - The opcode to unsubscribe from.
+     * @param {function} fnHandler - The handler reference to remove.
+     * @returns {boolean} - True if handler was found and removed.
+     */
+    unregisterApi(opCode, fnHandler) {
+        let routeList = this.routes[opCode] || [];
+        let fnIdx = routeList.indexOf(fnHandler);
+
+        if (fnIdx >= 0) {
+            routeList.splice(fnIdx, 1);
+            this.routes[opCode] = routeList;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Emits op data to all registered operation handlers.
      *
      * @param {object} data - The decoded JSON payload
