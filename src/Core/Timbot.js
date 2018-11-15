@@ -6,6 +6,8 @@ class Timbot {
      * Initializes Timbot and starts all modules.
      */
     static start() {
+        this._shuttingDown = false;
+
         // Set version
         this.package = require('../../package.json');
         this.version = this.package.version;
@@ -60,6 +62,8 @@ class Timbot {
     static stop() {
         // Our goal: shut down everything and anything that's (potentially) keeping our process up
         Timbot.log.w(_("Shutting down..."));
+
+        this._shuttingDown = true;
 
         setTimeout(() => {
             Timbot.log.i(_("Bye!"));
@@ -155,6 +159,14 @@ class Timbot {
      */
     static _bindSignals() {
         let handleShutdownSignal = (signal) => {
+            if (this._shuttingDown) {
+                // We are already in shut down, and received another signal
+                // Force quit immediately
+                console.log('Force quit');
+                process.exit(Timbot.EXIT_CODE_UNSAFE_SHUTDOWN);
+                return;
+            }
+
             try {
                 Timbot.log.w(_("INTERRUPTED: Process signal received: {0}", signal));
                 this.stop();
