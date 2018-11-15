@@ -137,8 +137,6 @@ class Discord {
         // Event: Incoming message
         this.client.on('message', (message) => {
             if (!this.isUp) return;
-
-            console.log(message.cleanContent);
         });
     }
 }

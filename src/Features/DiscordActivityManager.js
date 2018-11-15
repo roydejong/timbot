@@ -75,8 +75,6 @@ class DiscordActivityManager {
 
             Timbot.db.connection.prepare("UPDATE `settings` SET `value` = ? WHERE `key` = ? LIMIT 1;")
                 .run(this._currentUrl, "activity_url");
-
-            Timbot.log.d(_("[Activity] tried 2 rite"));
         } catch (e) {
             Timbot.log.e(_("[Activity] Could not write state to database: {0}", e.message));
         }
