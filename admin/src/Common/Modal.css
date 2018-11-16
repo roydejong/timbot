@@ -1,0 +1,27 @@
+.Modal {
+    display: flex;
+    position: fixed;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, .5);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.Modal .modal.show {
+    display: flex;
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+.Modal .modal.show .modal-dialog {
+    max-width: 100%;
+    width: 500px;
+    box-sizing: border-box;
+}

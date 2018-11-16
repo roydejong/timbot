@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import {BrowserRouter as Router, Link, Route} from "react-router-dom";
+import {BrowserRouter as Router, Route} from "react-router-dom";
 import DashPage from "./Pages/DashPage";
-import ReactionsPage from "./Pages/ReactionsPage";
+import ReactionsPage from "./Pages/Reactions/ReactionsPage";
 
 class App extends Component {
     render() {

@@ -1,0 +1,104 @@
+.DiscordPreviewer {
+    background-color: #36393F;
+    font-family: Whitney, 'Open Sans Condensed', "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: normal;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.DiscordPreviewer__msg {
+    padding-bottom: 20px;
+    padding-top: 20px;
+    box-sizing: border-box;
+    user-select: text;
+    word-wrap: break-word;
+    outline: 0;
+    text-rendering: optimizeLegibility;
+}
+.DiscordPreviewer__msg-header {
+    align-items: flex-start;
+    display: flex;
+}
+.DiscordPreviewer__msg-header-avatar {
+    cursor: pointer;
+    margin: -2px 20px 20px;
+    opacity: 1;
+    transition: opacity .2s ease;
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+}
+.DiscordPreviewer__msg-header-avatar-image {
+    height: 40px;
+    width: 40px;
+    background-clip: padding-box;
+    background-position: 50%;
+    background-size: 100%;
+    border-radius: 50%;
+}
+.DiscordPreviewer__msg-header-user {
+    color: hsla(0,0%,100%,.2);
+    white-space: nowrap;
+    height: 21px;
+    margin-top: -18px;
+}
+.DiscordPreviewer__msg-header-user-text {
+    outline: 0;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    letter-spacing: 0;
+    height: 16px;
+}
+.DiscordPreviewer__msg-header-user-ts {
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    margin-left: .3rem;
+    height: 15px;
+}
+.DiscordPreviewer__msg-content {
+    font-size: 13px;
+    line-height: 1.3;
+    user-select: text;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #dcddde;
+    margin-left: 80px;
+    padding-right: 10px;
+    margin-top: -36px;
+}
+
+.DiscordPreviewer__msg-content span.hi {
+    background-color: rgba(218, 103, 27, 0.1);
+    color: #da7d00;
+    padding: 0 2px;
+}
+
+.DiscordPreviewer__msg-bot-tag {
+    background: #7289da;
+    color: #fff;
+    margin-left: .3rem;
+    border-radius: 3px;
+    flex-shrink: 0;
+    font-weight: 500;
+    line-height: 1.3;
+    padding: 1px 2px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    display: inline-flex;
+    font-size: 10px;
+    margin-top: 8px;
+}
+
+span.botmention {
+    margin-right: 3px;
+    background-color: rgba(114,137,218,.1);
+    color: #7289da;
+    cursor: pointer;
+    transition: background-color 50ms ease-out,color 50ms ease-out;
+    font-weight: 500;
+    padding: 0 2px;
+}

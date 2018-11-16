@@ -1,0 +1,36 @@
+.ReactionEdit {
+    padding: 10px;
+    font-size: 14px;
+}
+.ReactionEdit label {
+    font-weight: 500;
+    font-size: 14px;
+}
+.ReactionEdit .form-check label {
+    font-weight: 400;
+}
+.ReactionEdit .form-group-secondary {
+    display: block;
+    margin: .5rem 0;
+}
+.ReactionEdit .form-check {
+    /*margin: .75rem 0;*/
+}
+
+.ReactionEdit small {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 15px;
+    padding: 10px;
+    background: #fbfbfb;
+    border: 1px dotted #eee;
+    border-radius: 4px;
+}
+.ReactionEdit small > i {
+    margin-right: 10px;
+}
+
+.ReactionEdit .DiscordPreviewer {
+    margin-top: 1rem;
+}
