@@ -72,7 +72,7 @@ class Db {
      * @param {object} data - Contains data to insert or update by column name.
      * @param {string} [primaryKeyName] - Overrides the default primary key name ("id").
      * @param {boolean} [forceInsert] - Forces insert and does not perform update check.
-     * @return {bool|number} - Returns false on error, the inserted ID if available, otherwise true on write OK.
+     * @return {bool|number} - Returns FALSE on error, otherwise the inserted/updated ID.
      */
     insertOrUpdate(tableName, data, primaryKeyName, forceInsert) {
         if (!primaryKeyName) {
@@ -84,10 +84,10 @@ class Db {
         let isInserting = false;
 
         try {
-            if (forceInsert) {
+            if (forceInsert === true) {
                 // Forcing insert
                 isInserting = true;
-            } else if (typeof data[primaryKeyName] !== "undefined" && !!data[primaryKeyName]) {
+            } else if (typeof data[primaryKeyName] === "undefined" || !data[primaryKeyName]) {
                 // Need to insert, primary key is missing
                 isInserting = true;
             } else {
@@ -109,9 +109,15 @@ class Db {
         // ---
 
         if (isInserting) {
+            // Insert mode
             return this.insert(tableName, data);
         } else {
-            return this.update(tableName, data, primaryKeyName);
+            // Update mode
+            if (this.update(tableName, data, primaryKeyName)) {
+                return data[primaryKeyName];
+            }
+
+            return false;
         }
     }
 
@@ -123,7 +129,7 @@ class Db {
      *
      * @param {string} tableName - Name of the table to insert to.
      * @param {object} data - Object containing data keyed by column name.
-     * @returns {number|bool} - Returns the last insert / auto increment ID, returns false on failure, true on success but no insert id available.
+     * @return {bool|number} - Returns FALSE on error, otherwise the inserted ID.
      */
     insert(tableName, data) {
         try {
@@ -156,7 +162,7 @@ class Db {
                 .prepare(sQuery)
                 .run(data);
 
-            return parseInt(info.lastInsertRowid) || true;
+            return parseInt(info.lastInsertRowid);
         } catch (e) {
             Timbot.log.e(_("[DB] Unable to generate/run update query: {0}", e.message));
             return false;
@@ -200,8 +206,8 @@ class Db {
                 }
             });
 
-            // WHERE `pk_name` = @pkval
-            sQuery += ' WHERE `' + primaryKeyName + '` = @pkval LIMIT 1;';
+            // WHERE `pk_name` = @pk_name
+            sQuery += ' WHERE `' + primaryKeyName + '` = @' + primaryKeyName + ' LIMIT 1;';
 
             Timbot.log.d(_("[DB] Generated update query: {0}", sQuery));
 

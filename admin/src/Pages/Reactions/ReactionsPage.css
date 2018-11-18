@@ -1,0 +1,27 @@
+.ReactionsPageHead {
+    background-color: rgba(0,0,0,.03);
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.ReactionsPage__controls {
+    display: flex;
+    align-items: center;
+}
+
+.ReactionsPage__controls-r {
+    display: flex;
+    min-height: 39px;
+    align-items: center;
+    font-size: 14px;
+}
+.ReactionsPage__controls-r > p {
+    margin: 0;
+}
+.ReactionsPage__controls-r > p > i {
+    margin-right: .25rem;
+}
+
+.ReactionsPageBody {
+    padding: 1.5rem 0;
+}

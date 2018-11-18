@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import './ReactionEdit.css';
 import Modal from "../../Common/Modal";
 import DiscordPreviewer from "../../Common/DiscordPreviewer";
+import ApiRequest from "../../Api/ApiRequest";
 
 export default class ReactionEdit extends Component {
     constructor(props) {
@@ -11,6 +12,7 @@ export default class ReactionEdit extends Component {
         this.state = {
             data: null,
             isEditing: false,
+            isSubmitting: false,
             step: 0
         };
     }
@@ -70,12 +72,46 @@ export default class ReactionEdit extends Component {
     }
 
     handleConfirm() {
-        if (this.state.step === 0) {
-            this.setState({ step: 1 });
+        if (this.state.isSubmitting) {
+            return;
         }
+
+        if (this.state.step === 0) {
+            // Move from step 0 to step 1
+            this.setState({ step: 1 });
+            return;
+        }
+
+        // Submit to server ---
+        this.setState({
+            isSubmitting: false
+        });
+
+        let payload = Object.assign(
+            { "op": "reaction_write" },
+            this.state.data,
+        );
+
+        let request = new ApiRequest(payload);
+        request.send()
+            .then(() => {
+                this.props.onComplete();
+            })
+            .catch((e) => {
+                console.error('(ReactionEdit) Save API error:', e);
+            })
+            .then(() => {
+                this.setState({
+                    isSubmitting: false
+                });
+            });
     }
 
     handleDismiss() {
+        if (this.state.isSubmitting) {
+            return;
+        }
+
         if (this.state.step === 1) {
             this.setState({ step: 0 });
         } else {
@@ -90,7 +126,7 @@ export default class ReactionEdit extends Component {
             return (null);
         }
 
-        let modalTitle = this.state.editMode ? "Edit reaction" : "Set up new reaction";
+        let modalTitle = this.state.isEditing ? "Edit reaction" : "Set up new reaction";
 
         let confirmLabel = "Save reaction";
         let confirmEnabled = true;
@@ -116,7 +152,7 @@ export default class ReactionEdit extends Component {
         return (
             <Modal title={modalTitle} onDismiss={this.handleDismiss.bind(this)} confirmLabel={confirmLabel}
                    onConfirm={this.handleConfirm.bind(this)} canConfirm={!!confirmEnabled}
-                   dismissLabel={cancelLabel}
+                   dismissLabel={cancelLabel} busy={this.state.isSubmitting}
             >
                 <div className={"ReactionEdit"}>
                     <form>
@@ -250,5 +286,6 @@ ReactionEdit.TYPES[ReactionEdit.TYPE_MESSAGE] = "Message: Exact match";
 
 ReactionEdit.propTypes = {
     reaction: PropTypes.object,
-    onDismiss: PropTypes.func.isRequired
+    onDismiss: PropTypes.func.isRequired,
+    onComplete: PropTypes.func.isRequired
 };

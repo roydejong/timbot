@@ -6,7 +6,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 3px;
+    height: 4px;
     background: #27c4f5 -webkit-gradient(linear,left top,right top,from(#27c4f5),color-stop(#a307ba),color-stop(#fd8d32),color-stop(#70c050),to(#27c4f5));
     background: #27c4f5 -webkit-linear-gradient(left,#27c4f5,#a307ba,#fd8d32,#70c050,#27c4f5);
     background: #27c4f5 linear-gradient(to right,#27c4f5,#a307ba,#fd8d32,#70c050,#27c4f5);
@@ -14,6 +14,7 @@
     animation: 2s linear infinite LoadingBarProgress,.25s ease-out LoadingBarEnter;
     transform-origin: left;
     width: 100%;
+    z-index: 1;
 }
 
 @keyframes LoadingBarProgress{

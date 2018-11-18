@@ -69,6 +69,11 @@ class ApiServer {
 
         let handlerList = this.routes[opCode];
 
+        if (!handlerList || !handlerList.length) {
+            Timbot.log.w(_("[API] No handlers registered for op: {0}", opCode));
+            return;
+        }
+
         for (let i = 0; i < handlerList.length; i++) {
             let _handlerFn = handlerList[i];
 
@@ -80,6 +85,7 @@ class ApiServer {
                 }
             } catch (e) {
                 Timbot.log.e(_("[API] Error occurred in a route handler ({0}): {1}", opCode, e));
+                Timbot.log.e(e);
             }
         }
     }
@@ -128,16 +134,20 @@ class ApiServer {
 
         this.app.ws('/api', (ws, req) => {
             ws.on('message', ((msg) => {
+                let msgParsed = null;
+
                 try {
-                    let msgParsed = JSON.parse(msg);
-
-                    if (!msgParsed) {
-                        throw new Error('Empty message');
-                    }
-
-                    this._emitApi(ws, msgParsed);
+                    msgParsed = JSON.parse(msg);
                 } catch (e) {
                     Timbot.log.d(_("[API] Could not parse incoming message as JSON: {0}", msg.toString()));
+                }
+
+                if (msgParsed) {
+                    try {
+                        this._emitApi(ws, msgParsed);
+                    } catch (e) {
+                        Timbot.log.d(_("[API] Error processing {1} event: {0}", e.message, msgParsed.op || "unknown"));
+                    }
                 }
             }));
 
