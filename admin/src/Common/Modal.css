@@ -25,3 +25,22 @@
     width: 500px;
     box-sizing: border-box;
 }
+
+.Modal__busy {
+    animation: BusySpin .5s infinite linear;
+    position: absolute;
+    display: flex;
+    top: 16px;
+    right: 20px;
+    font-size: 22px;
+    color: #007bff;
+}
+
+@keyframes BusySpin {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    100% {
+        transform: rotateZ(360deg);
+    }
+}

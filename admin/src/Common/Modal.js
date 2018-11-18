@@ -12,10 +12,18 @@ export default class Modal extends Component {
                             {this.props.showHeader &&
                             <div className="modal-header">
                                 <h5 className="modal-title">{this.props.icon || null} {this.props.title}</h5>
-                                {this.props.canDismiss &&
-                                <button type="button" className="close" title={this.props.dismissLabel}>
+
+                                {this.props.canDismiss && !this.props.busy &&
+                                <button type="button" className="close" title={this.props.dismissLabel}
+                                        onClick={this.props.onDismiss}>
                                     <span>&times;</span>
                                 </button>
+                                }
+
+                                {this.props.busy &&
+                                    <div className={"Modal__busy"}>
+                                        <i className={"mdi mdi-loading"}/>
+                                    </div>
                                 }
                             </div>
                             }
@@ -25,9 +33,11 @@ export default class Modal extends Component {
                             <div className="modal-footer">
                                 {this.props.canDismiss &&
                                 <button type="button" className="btn btn-secondary"
+                                        disabled={!this.props.canDismiss || this.props.busy}
                                         onClick={this.props.onDismiss}>{this.props.dismissLabel}</button>
                                 }
-                                <button type="button" className="btn btn-primary" disabled={!this.props.canConfirm}
+                                <button type="button" className="btn btn-primary"
+                                        disabled={!this.props.canConfirm || this.props.busy}
                                         onClick={this.props.onConfirm}>{this.props.confirmLabel}</button>
                             </div>
                         </div>
@@ -42,7 +52,8 @@ Modal.defaultProps = {
     showHeader: true,
     canDismiss: true,
     dismissLabel: "Cancel",
-    confirmLabel: "OK"
+    confirmLabel: "OK",
+    busy: false
 };
 
 Modal.propTypes = {
@@ -57,5 +68,7 @@ Modal.propTypes = {
     onConfirm: PropTypes.func,
     confirmLabel: PropTypes.string,
 
-    icon: PropTypes.any
+    icon: PropTypes.any,
+
+    busy: PropTypes.bool
 };
