@@ -170,11 +170,34 @@ class ReactionManager extends Feature {
 
     _deliverReaction(client, message, reaction) {
         if (reaction.emote) {
-            try {
-                message.react(reaction.emote);
-            } catch (e) {
-                Timbot.log.w(_("[Reactions] Could not react with emote `{0}`: {1}", reaction.emote, e.message));
-            }
+            // Add emoji/emote reactions to the original message
+            // We'll allow multiple emotes in reaction spec separated by space
+            let emotes = reaction.emote.split(' ');
+
+            emotes.forEach((emote) => {
+                // Each emote is either a straight emoji or a Discord emote, e.g. ":tada:"
+                // For the latter we need to do a lookup
+                if (emote.startsWith(":") && emote.endsWith(":")) {
+                    let emoteVal = emote.substr(1, emote.length - 2); // remove colons for lookup
+                    let discordEmoji = client.emojis.find(e => e.name === emoteVal);
+
+                    if (discordEmoji) {
+                        // We have a Discord emoji (a custom server one) to react with
+                        message.react(discordEmoji.id)
+                            .catch((err) => {
+                                Timbot.log.w(_("[Reactions] Could not react with resolved Discord emote `{0}` <{2}>: {1}", emote, err, discordEmoji.id));
+                            });
+                    } else {
+                        Timbot.log.w(_("[Reactions] Could not react, unable to resolve Discord emote `{0}`.", emote));
+                    }
+                } else {
+                    // Probably a unicode emoji
+                    message.react(emote)
+                        .catch((err) => {
+                            Timbot.log.w(_("[Reactions] Could not react with emote `{0}`: {1}", emote, err));
+                        });
+                }
+            });
         }
 
         if (reaction.response) {
