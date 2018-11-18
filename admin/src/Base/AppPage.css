@@ -2,6 +2,40 @@
     border-top: 3px solid #7289DA;
 }
 
+.AppPage__loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: #27c4f5 -webkit-gradient(linear,left top,right top,from(#27c4f5),color-stop(#a307ba),color-stop(#fd8d32),color-stop(#70c050),to(#27c4f5));
+    background: #27c4f5 -webkit-linear-gradient(left,#27c4f5,#a307ba,#fd8d32,#70c050,#27c4f5);
+    background: #27c4f5 linear-gradient(to right,#27c4f5,#a307ba,#fd8d32,#70c050,#27c4f5);
+    background-size: 500%;
+    animation: 2s linear infinite LoadingBarProgress,.25s ease-out LoadingBarEnter;
+    transform-origin: left;
+    width: 100%;
+}
+
+@keyframes LoadingBarProgress{
+    0%{
+        background-position:0% 0
+    }
+    to{
+        background-position:125% 0
+    }
+}
+
+@keyframes LoadingBarEnter{
+    0%{
+        -webkit-transform:scaleX(0);
+        transform:scaleX(0)
+    }
+    to{
+        -webkit-transform:scaleX(1);
+        transform:scaleX(1)
+    }
+}
+
 .AppPage__subtitle {
     padding: .75rem 0;
     background: #2C2F33;

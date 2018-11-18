@@ -5,8 +5,17 @@ import PropTypes from 'prop-types';
 
 export default class AppPage extends Component {
     render() {
+        let classNames = [];
+        classNames.push("AppPage");
+
+        if (this.props.busy) {
+            classNames.push("AppPage--busy");
+        }
+
         return (
-            <div className={"AppPage"}>
+            <div className={classNames.join(' ')}>
+                {this.props.busy && <div className={"AppPage__loader"}/>}
+
                 <Navbar activeTab={this.props.activeTab}/>
 
                 <div className={"AppPage__subtitle"}>
@@ -25,5 +34,6 @@ export default class AppPage extends Component {
 
 AppPage.propTypes = {
     activeTab: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired
+    title: PropTypes.string.isRequired,
+    busy: PropTypes.bool
 };
