@@ -12,4 +12,6 @@ console.log(`Timbot [Version ${_package.version}]`);
 console.log(`https://roydejong.net/timbot`);
 console.log('');
 
+require('./common');
+
 Timbot.start();

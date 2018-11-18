@@ -1,6 +1,7 @@
 const DiscordJs = require('discord.js');
 const Timbot = require('../Core/Timbot');
 const Feature = require('../Features/Base/Feature');
+const Messenger = require('./Messenger');
 
 /**
  * Timbot Discord Bot Manager
@@ -10,14 +11,17 @@ class Discord {
      * Initializes the Discord bot manager.
      *
      * @param {config} config
+     * @param {Messenger} messenger
      */
-    constructor(config) {
+    constructor(config, messenger) {
         this.config = config;
         this.timeoutSecs = 3;
 
         if (!this.config.has("discord.token")) {
-            throw new Error("No `discord.token` has been configured. Cannot log in to Discord.");
+            throw new Error("[Discord] No `discord.token` has been configured. Cannot log in to Discord.");
         }
+
+        this.messenger = messenger;
     }
 
     /**
@@ -32,7 +36,7 @@ class Discord {
 
         this.client.login(this.config.discord.token)
             .catch((err) => {
-                Timbot.log.e(_("Error occurred during Discord login: {0}.", err || "Unknown error"));
+                Timbot.log.e(_("[Discord] Error occurred during Discord login: {0}.", err || "Unknown error"));
                 this._scheduleRetry();
             });
     }
@@ -71,7 +75,7 @@ class Discord {
             return false;
         }
 
-        Timbot.log.w(_("Retrying Discord connection in {0} seconds...", this.timeoutSecs));
+        Timbot.log.w(_("[Discord] Retrying connection in {0} seconds...", this.timeoutSecs));
 
         if (this.retryTimeout) {
             clearTimeout(this.retryTimeout);
@@ -104,7 +108,7 @@ class Discord {
 
             this.timeoutSecs = 30;
 
-            Timbot.log.i(_("Logged in to Discord as {0} (member of {1} server(s)).", this.client.user.tag, this.client.guilds.size));
+            Timbot.log.i(_("[Discord] Logged in as {0} (member of {1} server(s)).", this.client.user.tag, this.client.guilds.size));
 
             Timbot.features.emitEvent(Feature.EVENT_DISCORD_READY, {
                 client: this.client,
@@ -116,7 +120,7 @@ class Discord {
         this.client.on('disconnect', () => {
             if (!this.isUp) return;
 
-            Timbot.log.e(_("Discord connection failed."));
+            Timbot.log.e(_("[Discord] Disconnected."));
 
             Timbot.features.emitEvent(Feature.EVENT_DISCORD_DISCONNECTED, {
                 client: this.client,
@@ -130,13 +134,19 @@ class Discord {
         this.client.on('error', (error) => {
             if (!this.isUp) return;
 
-            Timbot.log.e(_("Discord connection error: {0}.", error));
+            Timbot.log.e(_("[Discord] Connection error: {0}.", error));
             this._scheduleRetry();
         });
 
         // Event: Incoming message
         this.client.on('message', (message) => {
             if (!this.isUp) return;
+
+            try {
+                this.messenger.handleDiscordMessage(this.client, message);
+            } catch (e) {
+                Timbot.log.e(_("[Discord] Internal message handling error: {0}.", e));
+            }
         });
     }
 }

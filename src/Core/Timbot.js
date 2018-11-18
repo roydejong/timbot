@@ -31,6 +31,9 @@ class Timbot {
         // Init process signal handlers
         this._bindSignals();
 
+        // Init messenger
+        this._initMessenger();
+
         // Start admin API server
         this._initAdmin();
 
@@ -194,6 +197,17 @@ class Timbot {
     }
 
     /**
+     * Init step: Initialize messenger.
+     *
+     * @private
+     */
+    static _initMessenger() {
+        const Messenger = require('../Discord/Messenger');
+
+        this.messenger = new Messenger();
+    }
+
+    /**
      * Init step: Initialize Admin API server / management web interface.
      *
      * @private
@@ -239,7 +253,7 @@ class Timbot {
     static _initDiscord() {
         const Discord = require('../Discord/Discord');
 
-        this.discord = new Discord(this.config);
+        this.discord = new Discord(this.config, this.messenger);
         this.discord.start();
     }
 
