@@ -24,18 +24,20 @@ export default class ApiClient {
         console.info('[api]', `Connecting to ${this.wsUrl}...`);
 
         this.ws.addEventListener('open', () => {
-            this.retrySecs = 3;
             console.info('[api]', 'Websocket open.');
+            this.retrySecs = 3;
+            this.emit(ApiClient.EVENT_TYPE_CONNECTED, null, false);
         });
 
         this.ws.addEventListener('message', (msg) => {
-            console.info('[api]', 'Websocket message:', msg.data)
+            console.info('[api]', 'Websocket message:', msg.data);
             ApiClient.handleIncoming(msg.data);
         });
 
         this.ws.addEventListener('close', () => {
             console.warn('[api]', 'Websocket closed.');
             this.scheduleRetry();
+            this.emit(ApiClient.EVENT_TYPE_DISCONNECTED, null, false);
         });
 
         this.ws.addEventListener('error', (err) => {
@@ -109,8 +111,12 @@ export default class ApiClient {
         }
     }
 
-    static emit(eventType, data) {
-        this.greedyCache[eventType] = data;
+    static emit(eventType, data, noCache) {
+        console.log('[api/emit]', eventType);
+
+        if (!noCache) {
+            this.greedyCache[eventType] = data;
+        }
 
         Object.keys(this.subscriptions).forEach((key) => {
             let sub = this.subscriptions[key];
@@ -132,3 +138,6 @@ export default class ApiClient {
 
 ApiClient.RETRY_FACTOR = 1.5;
 ApiClient.RETRY_MAX_SECS = 60;
+
+ApiClient.EVENT_TYPE_CONNECTED = "api_connected";
+ApiClient.EVENT_TYPE_DISCONNECTED = "api_disconnected";
