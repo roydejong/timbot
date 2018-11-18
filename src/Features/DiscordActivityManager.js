@@ -35,7 +35,7 @@ class DiscordActivityManager extends Feature {
 
         // Period update timer (discord sometimes doesn't show our status so be pushy about it)
         this.applyInterval = setInterval(() => {
-            this.applyActivity();
+            this.applyActivity(false, true);
         }, 60 * 1000);
     }
 
@@ -65,7 +65,7 @@ class DiscordActivityManager extends Feature {
     handleEvent(eventName, data) {
         if (eventName === Feature.EVENT_DISCORD_READY) {
             // Perform a full reset & re-apply activity when Discord connects
-            this.applyActivity(true);
+            this.applyActivity(true, false);
         }
     }
 
@@ -94,7 +94,7 @@ class DiscordActivityManager extends Feature {
         this._dirty = true;
 
         this._dbWriteState();
-        this.applyActivity();
+        this.applyActivity(false, false);
     }
 
     /**
@@ -154,8 +154,11 @@ class DiscordActivityManager extends Feature {
 
     /**
      * Applies the current activity to the Discord bot.
+     *
+     * @param {boolean} [performReset] - If set, performs a full status reset first. Fixes most update issues.
+     * @param {boolean} {skipSync} - If set, do not re-sync to admin panel.
      */
-    applyActivity(performReset) {
+    applyActivity(performReset, skipSync) {
         // Q: What the fuck is going on with this function?
         // A: For some reason Discord won't set our activity sometimes, especially after login. Trying to circumvent it.
         try {
@@ -195,7 +198,9 @@ class DiscordActivityManager extends Feature {
             Timbot.log.w(_("[Activity] Failed to update current activity: {0}", e.message));
         }
 
-        this.broadcastActivityToAdmin();
+        if (!skipSync) {
+            this.broadcastActivityToAdmin();
+        }
     }
 
     /**
