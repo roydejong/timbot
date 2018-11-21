@@ -153,19 +153,14 @@ class ReactionManager extends Feature {
                 chatNormal = chatNormal.toLowerCase();
                 triggerNormal = triggerNormal.toLowerCase();
 
-                // Remove "grammatical punctuation"
-                chatNormal = chatNormal.replaceAll("!", "");
-                chatNormal = chatNormal.replaceAll("?", "");
-                chatNormal = chatNormal.replaceAll("'", "");
-                chatNormal = chatNormal.replaceAll('"', "");
-                chatNormal = chatNormal.replaceAll(",", "");
-                chatNormal = chatNormal.replaceAll(".", "");
+                // Remove "grammatical punctuation" where appropriate
+                chatNormal = this._normalizeInput(chatNormal, triggerNormal);
             }
 
             switch (reaction.type) {
                 case ReactionManager.TYPE_KEYWORD:
                     // Message: Keyword(s) boundary match
-                    return chatNormal.match(new RegExp("\\b" + triggerNormal + "\\b", "gm")) !== null;
+                    return chatNormal.match(this._createKeywordRegex(chatNormal, triggerNormal)) !== null;
                 case ReactionManager.TYPE_MESSAGE:
                     // Message: Exact match
                     return chatNormal === triggerNormal;
@@ -179,6 +174,42 @@ class ReactionManager extends Feature {
         matchingReactions.forEach((reaction) => {
             this._deliverReaction(client, message, reaction);
         });
+    }
+
+    _normalizeInput(input, trigger) {
+        let _replace = (str, from) => {
+            if (trigger.indexOf(from) === -1) {
+                // The trigger mask does NOT have this character so it is safe to replace
+                return str.replace(from, "");
+            } else {
+                // Trigger mask has this char so it can't be normalized away
+                return str;
+            }
+        };
+
+        input = _replace(input, ".");
+        input = _replace(input, ",");
+        input = _replace(input, "!");
+        input = _replace(input, "?");
+        input = _replace(input, "'");
+        input = _replace(input, '"');
+
+        return input;
+    }
+
+    _createKeywordRegex(chatNormal, triggerNormal) {
+        let rWordBoundary = "\\b";
+        let useEndBoundary = true;
+
+        if (triggerNormal.endsWith(".")) {
+            // TODO: If statement should be "if trigger ends with a non-word character [as per regex rules]"
+            useEndBoundary = false;
+        }
+
+        let rStatement =  rWordBoundary + "(" + escapeRegex(triggerNormal) + ")" + (useEndBoundary ? rWordBoundary : "");
+        let rFlags = "gm"; // global, multiline
+
+        return new RegExp(rStatement, rFlags);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
