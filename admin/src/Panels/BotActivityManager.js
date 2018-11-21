@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-// import './BotStatus.css';
+import {toast} from 'react-toastify';
 import ApiRequest from "../Api/ApiRequest";
 import ApiClient from "../Api/ApiClient";
 import './BotActivityManager.css';
@@ -77,9 +77,10 @@ export default class BotActivityManager extends Component {
 
         req.send()
             .then(() => {
-
+                toast.success("Sent activity update.");
             })
             .catch((err) => {
+                toast.error("Could not update bot presence / activity.");
                 console.error('[BotStatus]', `Error during status change:`, err);
             })
             .then(() => {

@@ -3,6 +3,7 @@ import AppPage from "../Base/AppPage";
 import "./LoginPage.css";
 import ApiRequest from "../Api/ApiRequest";
 import ApiClient from "../Api/ApiClient";
+import {toast} from 'react-toastify';
 
 export default class LoginPage extends Component {
     constructor(props) {
@@ -37,11 +38,15 @@ export default class LoginPage extends Component {
             password: this.state.passwordValue
         })
             .send()
-            .catch((e) => { })
+            .catch((e) => {
+                toast.error("Could not send login request.");
+            })
     }
 
     handleLoginState(result) {
         if (!result.ok) {
+            toast.warn("Invalid login credentials.");
+
             setTimeout(() => {
                 this.setState({
                     tryingLogin: false,
@@ -50,6 +55,8 @@ export default class LoginPage extends Component {
                 });
             }, 1000);
         } else {
+            toast.dismiss();
+
             this.setState({
                 tryingLogin: false,
                 didError: false

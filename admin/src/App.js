@@ -4,6 +4,9 @@ import DashPage from "./Pages/DashPage";
 import ReactionsPage from "./Pages/Reactions/ReactionsPage";
 import LoginPage from "./Pages/LoginPage";
 import ApiClient from "./Api/ApiClient";
+import {toast, ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './App.css';
 
 class App extends Component {
     constructor(props) {
@@ -25,13 +28,20 @@ class App extends Component {
     }
 
     handleLoginNeeded() {
-        this.setState({
-            mustLogin: true
-        });
+        if (!this.state.mustLogin) {
+            this.setState({
+                mustLogin: true
+            });
+
+            toast.dismiss();
+            toast.warn("You must log in to continue.");
+        }
     }
 
     handleLoginResult(data) {
         if (data.ok) {
+            toast.dismiss();
+
             this.setState({
                 mustLogin: false
             });
@@ -52,6 +62,7 @@ class App extends Component {
                             <Route path={"/reactions"} exact={true} component={ReactionsPage}/>
                         </div>
                         }
+                        <ToastContainer position={toast.POSITION.BOTTOM_CENTER} />
                     </div>
                 </Router>
             </div>

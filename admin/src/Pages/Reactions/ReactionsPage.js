@@ -5,6 +5,7 @@ import './ReactionsPage.css';
 import ApiRequest from "../../Api/ApiRequest";
 import ApiClient from "../../Api/ApiClient";
 import ReactionsTable from "./ReactionsTable";
+import {toast} from 'react-toastify';
 
 export default class ReactionsPage extends Component {
     constructor(props) {
@@ -25,7 +26,9 @@ export default class ReactionsPage extends Component {
 
         new ApiRequest({ op: "reactions_fetch" }).send()
             .catch((e) => {
+                toast.error("Could not load reactions list.");
                 console.error("(ReactionsPage) Refresh request error:", e);
+                this.setState({ isLoading: false });
             })
     }
 
@@ -33,7 +36,9 @@ export default class ReactionsPage extends Component {
         ApiClient.subscribeGreedy("ReactionsPage_connect", ApiClient.EVENT_TYPE_CONNECTED, this.handleApiConnect.bind(this));
         ApiClient.subscribeGreedy("ReactionsPage_fetch", "reactions_fetch", this.handleApiData.bind(this));
 
-        this.refresh();
+        if (ApiClient.isConnected) {
+            this.refresh();
+        }
     }
 
     componentWillUnmount() {
@@ -85,7 +90,11 @@ export default class ReactionsPage extends Component {
             id: reaction.id || null
         })
             .send()
+            .then(() => {
+                toast.success("Reaction deleted.");
+            })
             .catch((e) => {
+                toast.error("Could not delete reaction.");
                 console.error("(ReactionsPage) Delete request error:", e);
             })
     }

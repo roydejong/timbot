@@ -4,6 +4,7 @@ import './ReactionEdit.css';
 import Modal from "../../Common/Modal";
 import DiscordPreviewer from "../../Common/DiscordPreviewer";
 import ApiRequest from "../../Api/ApiRequest";
+import {toast} from 'react-toastify';
 
 export default class ReactionEdit extends Component {
     constructor(props) {
@@ -96,8 +97,10 @@ export default class ReactionEdit extends Component {
         request.send()
             .then(() => {
                 this.props.onComplete();
+                toast.success("Reaction saved.");
             })
             .catch((e) => {
+                toast.error("Could not save reaction.");
                 console.error('(ReactionEdit) Save API error:', e);
             })
             .then(() => {
