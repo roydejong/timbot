@@ -58,7 +58,7 @@ export default class Navbar extends Component {
                     </a>
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul className="navbar-nav mr-auto">
-                            {Object.keys(tabs).map((tabId) => {
+                            {this.props.enabled && Object.keys(tabs).map((tabId) => {
                                 let tab = tabs[tabId];
 
                                 return <NavbarItem key={tabId} title={tab.label}
@@ -87,6 +87,11 @@ export default class Navbar extends Component {
     }
 }
 
+Navbar.defaultProps = {
+    enabled: true
+};
+
 Navbar.propTypes = {
-    activeTab: PropTypes.string.isRequired
+    activeTab: PropTypes.string.isRequired,
+    enabled: PropTypes.bool
 };

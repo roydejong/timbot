@@ -141,3 +141,6 @@ ApiClient.RETRY_MAX_SECS = 60;
 
 ApiClient.EVENT_TYPE_CONNECTED = "api_connected";
 ApiClient.EVENT_TYPE_DISCONNECTED = "api_disconnected";
+
+ApiClient.OP_LOGIN_NEEDED = "must_login";
+ApiClient.OP_LOGIN = "login";

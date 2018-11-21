@@ -1,0 +1,11 @@
+.LoginPage {
+    margin: 3rem auto;
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 450px;
+    background: #fafafa;
+    flex-direction: column;
+}

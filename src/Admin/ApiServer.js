@@ -1,5 +1,6 @@
 const express = require('express');
 const Timbot = require('../Core/Timbot');
+const ApiClient = require('./ApiClient');
 const _package = require('../../package');
 
 /**
@@ -14,6 +15,10 @@ class ApiServer {
     constructor(config) {
         this.config = config;
         this.routes = { };
+        this._clientIdGenerator = 0;
+        this._clients = { };
+
+        this._autoAuth = !config.admin.password;
     }
 
     /**
@@ -50,14 +55,8 @@ class ApiServer {
         return false;
     }
 
-    /**
-     * Emits op data to all registered operation handlers.
-     *
-     * @param {object} data - The decoded JSON payload
-     * @private
-     */
-    _emitApi(ws, data) {
-        let opCode = data.op;
+    handleIncoming(client, data) {
+        let opCode = (data && data.op) || null;
 
         if (!opCode) {
             try {
@@ -78,7 +77,7 @@ class ApiServer {
             let _handlerFn = handlerList[i];
 
             try {
-                let _returnValue = _handlerFn(ws, data);
+                let _returnValue = _handlerFn(client, data);
 
                 if (_returnValue === true) {
                     break;
@@ -90,34 +89,51 @@ class ApiServer {
         }
     }
 
+    _handleWebsocketConnect(ws) {
+        let client = new ApiClient(this, ws, this._clientIdGenerator++);
+        this._clients[client.id] = client;
+
+        if (this._autoAuth) {
+            Timbot.log.w(_("[API] Admin password is blank, skipping login."));
+            client.isAuthenticated = true;
+        }
+
+        client.onConnect();
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
     /**
      * Broadcasts a given message to all connected Admin API clients.
      *
      * @param {object} data
+     * @param {boolean} [includeUnauthed]
      * @returns {boolean} - Indicates whether broadcast was successful or not.
      */
-    broadcast(data) {
+    broadcast(data, includeUnauthed) {
         if (!this.ws) {
             return false;
         }
 
-        // Get a list of connected clients and send mesage to each one
-        let aWss = this.ws.getWss('/api');
+        Object.keys(this._clients).forEach((key) => {
+            let client = this._clients[key];
 
-        aWss.clients.forEach((client) => {
-            try {
+            if (includeUnauthed || client.isAuthenticated) {
                 client.send(data);
-            } catch (e) { }
+            }
         });
 
         return true;
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+
     /**
      * Starts the API server; setting up the routes and binding it to the configured port.
      */
     start() {
-        let apiPort = this.config.admin.apiPort || ApiServer.API_PORT_DEFAULT;
+        let apiPort = this.config.admin.port || ApiServer.API_PORT_DEFAULT;
+        let apiBindAddress = this.config.admin.address || "0.0.0.0";
 
         this.app = express();
 
@@ -132,35 +148,15 @@ class ApiServer {
             res.end();
         });
 
-        this.app.ws('/api', (ws, req) => {
-            ws.on('message', ((msg) => {
-                let msgParsed = null;
-
-                try {
-                    msgParsed = JSON.parse(msg);
-                } catch (e) {
-                    Timbot.log.d(_("[API] Could not parse incoming message as JSON: {0}", msg.toString()));
-                }
-
-                if (msgParsed) {
-                    try {
-                        this._emitApi(ws, msgParsed);
-                    } catch (e) {
-                        Timbot.log.d(_("[API] Error processing {1} event: {0}", e.message, msgParsed.op || "unknown"));
-                    }
-                }
-            }));
-
-            this._emitApi(ws, {"op": ApiServer.OP_ADMIN_CONNECT_EVENT});
-        });
+        this.app.ws('/api', this._handleWebsocketConnect.bind(this));
 
         // Start listening
-        this.server = this.app.listen(apiPort, '0.0.0.0')
+        this.server = this.app.listen(apiPort, apiBindAddress)
             .on('error', (err) => {
-                Timbot.log.e(_("Admin: Could not listen on *:{0}: {1}.", apiPort, err));
+                Timbot.log.e(_("Admin: Could not listen on {0}:{1}: {2}.", apiBindAddress, apiPort, err));
             });
 
-        Timbot.log.i(_("[API] Admin server listening on *:{0}.", apiPort));
+        Timbot.log.i(_("[API] Admin server listening on {0}:{1}.", apiBindAddress, apiPort));
     }
 
     stop() {
@@ -180,6 +176,7 @@ class ApiServer {
 
 ApiServer.API_PORT_DEFAULT = 4269;
 
+ApiServer.OP_LOGIN = "login";
 ApiServer.OP_ADMIN_CONNECT_EVENT = "connect";
 
 module.exports = ApiServer;

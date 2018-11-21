@@ -16,7 +16,7 @@ export default class AppPage extends Component {
             <div className={classNames.join(' ')}>
                 {this.props.busy && <div className={"AppPage__loader"}/>}
 
-                <Navbar activeTab={this.props.activeTab}/>
+                <Navbar activeTab={this.props.activeTab || null} enabled={this.props.enableNav}/>
 
                 <div className={"AppPage__subtitle"}>
                     <div className={"container"}>
@@ -32,8 +32,13 @@ export default class AppPage extends Component {
     }
 }
 
+AppPage.defaultProps = {
+    enableNav: true
+};
+
 AppPage.propTypes = {
-    activeTab: PropTypes.string.isRequired,
+    activeTab: PropTypes.string,
     title: PropTypes.string.isRequired,
-    busy: PropTypes.bool
+    busy: PropTypes.bool,
+    enableNav: PropTypes.bool
 };

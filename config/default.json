@@ -4,6 +4,8 @@
   },
   "admin": {
     "enabled": true,
-    "apiPort": 4269
+    "password": "CHANGE_ME",
+    "address": "0.0.0.0",
+    "port": 4269
   }
 }
