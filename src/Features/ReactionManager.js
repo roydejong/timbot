@@ -11,6 +11,7 @@ class ReactionManager extends Feature {
         this._data = {};
 
         this._handleApiWriteReaction = this._handleApiWriteReaction.bind(this);
+        this._handleApiReactionDelete = this._handleApiReactionDelete.bind(this);
         this._handleApiReactionsFetch = this._handleApiReactionsFetch.bind(this);
         this._handleDiscordMessage = this._handleDiscordMessage.bind(this);
     }
@@ -27,6 +28,7 @@ class ReactionManager extends Feature {
 
         // Register API routes
         Timbot.api.registerApi(ReactionManager.API_OP_REACTION_WRITE, this._handleApiWriteReaction);
+        Timbot.api.registerApi(ReactionManager.API_OP_REACTION_DELETE, this._handleApiReactionDelete);
         Timbot.api.registerApi(ReactionManager.API_OP_REACTIONS_FETCH, this._handleApiReactionsFetch);
 
         // Register message filter
@@ -39,6 +41,7 @@ class ReactionManager extends Feature {
     disable() {
         // Unregister routes
         Timbot.api.unregisterApi(ReactionManager.API_OP_REACTION_WRITE, this._handleApiWriteReaction);
+        Timbot.api.unregisterApi(ReactionManager.API_OP_REACTION_DELETE, this._handleApiReactionDelete);
         Timbot.api.unregisterApi(ReactionManager.API_OP_REACTIONS_FETCH, this._handleApiReactionsFetch);
 
         // Unregister message filter
@@ -83,11 +86,23 @@ class ReactionManager extends Feature {
 
         let recordId = parseInt(result);
 
-        if (!upsertData.id) {
+        if (!upsertData.id && recordId) {
             upsertData.id = recordId;
         }
 
         this._data[recordId] = upsertData;
+    }
+
+    _handleApiReactionDelete(ws, data) {
+        let id = parseInt(data.id) || null;
+
+        if (id && id > 0) {
+            if (Timbot.db.deleteIfExists("reactions", id)) {
+                delete this._data[id];
+            }
+
+            this._handleApiReactionsFetch(ws, null);
+        }
     }
 
     _handleApiReactionsFetch(ws, data) {
@@ -245,6 +260,7 @@ class ReactionManager extends Feature {
 }
 
 ReactionManager.API_OP_REACTION_WRITE = "reaction_write";
+ReactionManager.API_OP_REACTION_DELETE = "reaction_delete";
 ReactionManager.API_OP_REACTIONS_FETCH = "reactions_fetch";
 
 ReactionManager.TYPE_KEYWORD = "keyword";

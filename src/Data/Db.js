@@ -221,6 +221,38 @@ class Db {
             return false;
         }
     }
+
+    /**
+     * Performs a simple delete by primary key (single entry).
+     *
+     * @param {string} tableName - The name of the table to delete an entry from. Unsafe.
+     * @param {string|number} primaryKeyValue - The value of the primary key to delete. Will be bound as parameter.
+     * @param {string} [primaryKeyName] - Optional override for primary key name. Defaults to id. Unsafe.
+     */
+    deleteIfExists(tableName, primaryKeyValue, primaryKeyName) {
+        if (!primaryKeyName) {
+            primaryKeyName = "id";
+        }
+
+        try {
+            let sQuery = "DELETE FROM `" + tableName + "` WHERE `" + primaryKeyName + "` = @pkval LIMIT 1;";
+
+            let queryParams = {
+                pkval: primaryKeyValue
+            };
+
+            Timbot.log.d(_("[DB] Generated delete query: {0}", sQuery));
+
+            let info = this.connection
+                .prepare(sQuery)
+                .run(queryParams);
+
+            return info.changes >= 0;
+        } catch (e) {
+            Timbot.log.e(_("[DB] Unable to generate/run delete query: {0}", e.message));
+            return false;
+        }
+    }
 }
 
 Db.DEFAULT_PATH = "data/timbot.db";

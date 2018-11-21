@@ -79,6 +79,17 @@ export default class ReactionsPage extends Component {
         });
     }
 
+    handleReactionDelete(reaction) {
+        new ApiRequest({
+            op: "reaction_delete",
+            id: reaction.id || null
+        })
+            .send()
+            .catch((e) => {
+                console.error("(ReactionsPage) Delete request error:", e);
+            })
+    }
+
     render() {
         let isBusy = this.state.isLoading;
 
@@ -116,7 +127,9 @@ export default class ReactionsPage extends Component {
                 <div className={"ReactionsPageBody"}>
                     <div className={"container"}>
                         <ReactionsTable reactions={this.state.reactions}
-                                        onReactionClicked={this.handleReactionClick.bind(this)}/>
+                                        onReactionClicked={this.handleReactionClick.bind(this)}
+                                        onReactionDelete={this.handleReactionDelete.bind(this)}
+                        />
                     </div>
                 </div>
             </AppPage>

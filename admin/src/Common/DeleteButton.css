@@ -1,0 +1,52 @@
+.DeleteButton {
+    transition: all .2s ease;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 36px;
+    width: 93px;
+    line-height: normal;
+}
+
+.DeleteButton--confirm:before {
+    content: ' ';
+    height: 2px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    background: rgba(255, 255, 255, .777);
+    border-radius: 4px;
+    animation: confirmSlider 3.5s linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes confirmSlider {
+    0% {
+        right: 0;
+    }
+    100% {
+        right: 100%;
+    }
+}
+
+.DeleteButton--busy, .DeleteButton--busy:active, .DeleteButton--busy:focus, .DeleteButton--busy:hover {
+    outline: none;
+    box-shadow: none;
+}
+.DeleteButton--busy .mdi {
+    animation: deleteSpin 1s linear infinite;
+}
+
+@keyframes deleteSpin {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    100% {
+        transform: rotateZ(360deg);
+    }
+}
