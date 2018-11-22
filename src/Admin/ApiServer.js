@@ -106,11 +106,12 @@ class ApiServer {
     /**
      * Broadcasts a given message to all connected Admin API clients.
      *
-     * @param {object} data
-     * @param {boolean} [includeUnauthed]
+     * @param {object} data - The raw data to be transmitted.
+     * @param {boolean} [asJson] - If true, encode `data` using JSON.stringify().
+     * @param {boolean} [includeUnauthed] - If true, include unauthenticated clients in broadcast list.
      * @returns {boolean} - Indicates whether broadcast was successful or not.
      */
-    broadcast(data, includeUnauthed) {
+    broadcast(data, asJson, includeUnauthed) {
         if (!this.ws) {
             return false;
         }
@@ -119,7 +120,11 @@ class ApiServer {
             let client = this._clients[key];
 
             if (includeUnauthed || client.isAuthenticated) {
-                client.send(data);
+                if (asJson) {
+                    client.sendAsJson(data);
+                } else {
+                    client.send(data);
+                }
             }
         });
 

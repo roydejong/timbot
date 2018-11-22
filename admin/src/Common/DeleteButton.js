@@ -63,7 +63,7 @@ export default class DeleteButton extends Component {
     render() {
         let classNames = [];
         let faceLabel = this.props.label;
-        let icon = <i className={"mdi mdi-delete"}/>;
+        let icon = this.props.icon || <i className={"mdi mdi-delete"}/>;
         let isDisabled = false;
 
         classNames.push("btn");
@@ -107,5 +107,6 @@ DeleteButton.defaultProps = {
 
 DeleteButton.propTypes = {
     label: PropTypes.string,
-    onDelete: PropTypes.func.isRequired
+    onDelete: PropTypes.func.isRequired,
+    icon: PropTypes.any
 };

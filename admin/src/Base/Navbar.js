@@ -40,8 +40,9 @@ export default class Navbar extends Component {
 
     getTabs() {
         return {
-            "dash": { label: "Dashboard", href: "/", icon: <i className={"mdi mdi-home"}/> },
-            "reactions": { label: "Reactions", href: "/reactions", icon: <i className={"mdi mdi-chat"}/> }
+            "dash": { label: "Dash", href: "/", icon: <i className={"mdi mdi-home"}/> },
+            "behavior": { label: "Behavior", href: "/behavior", icon: <i className={"mdi mdi-flash-circle"}/> },
+            "servers": { label: "Servers", href: "/servers", icon: <i className={"mdi mdi-server"}/> }
         };
     }
 

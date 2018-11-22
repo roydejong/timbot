@@ -8,6 +8,8 @@ class TimbotInfo extends Feature {
         super();
 
         this._handleApiUserConnected = this._handleApiUserConnected.bind(this);
+        this._handleApiFetchServerList = this._handleApiFetchServerList.bind(this);
+        this._handleApiLeaveServer = this._handleApiLeaveServer.bind(this);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -17,6 +19,8 @@ class TimbotInfo extends Feature {
      */
     enable() {
         Timbot.api.registerApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this._handleApiUserConnected);
+        Timbot.api.registerApi(TimbotInfo.OP_FETCH_SERVER_LIST, this._handleApiFetchServerList);
+        Timbot.api.registerApi(TimbotInfo.OP_LEAVE_SERVER, this._handleApiLeaveServer);
     }
 
     /**
@@ -24,6 +28,8 @@ class TimbotInfo extends Feature {
      */
     disable() {
         Timbot.api.unregisterApi(ApiServer.OP_ADMIN_CONNECT_EVENT, this._handleApiUserConnected);
+        Timbot.api.unregisterApi(TimbotInfo.OP_FETCH_SERVER_LIST, this._handleApiFetchServerList);
+        Timbot.api.unregisterApi(TimbotInfo.OP_LEAVE_SERVER, this._handleApiLeaveServer);
     }
 
     /**
@@ -38,16 +44,54 @@ class TimbotInfo extends Feature {
 
     // -----------------------------------------------------------------------------------------------------------------
 
-    _handleApiUserConnected(ws) {
-        try {
-            ws.send(this._generatePayload());
-        } catch (e) { }
+    _handleApiUserConnected(client) {
+        client.sendAsJson(this._generatePayload());
+    }
+
+    _handleApiFetchServerList(client) {
+        let szList = [];
+        let discordClient = Timbot.discord.client;
+
+        if (discordClient && discordClient.guilds) {
+            discordClient.guilds.array().forEach((guild) => {
+                szList.push({
+                    id: guild.id,
+                    name: guild.name,
+                    icon: guild.iconURL,
+                    joined: guild.joinedTimestamp,
+                    members: guild.memberCount,
+                    owner_name: guild.owner.user.username
+                });
+            });
+        }
+
+        client.sendAsJson({
+            op: TimbotInfo.OP_FETCH_SERVER_LIST,
+            servers: szList
+        });
+    }
+
+    _handleApiLeaveServer(client, data) {
+        let serverId = data.id;
+        let discordClient = Timbot.discord.client;
+
+        if (discordClient) {
+            let guild = discordClient.guilds.get(serverId);
+
+            if (guild) {
+                guild.leave()
+                    .then(() => {
+                        Timbot.log.i(_("[Discord] Left server {0} [requested from admin]", serverId));
+                        this._handleApiFetchServerList(client);
+                    });
+            }
+        }
     }
 
     // -----------------------------------------------------------------------------------------------------------------
 
     broadcastAdminInfo() {
-        Timbot.api.broadcast(this._generatePayload());
+        Timbot.api.broadcast(this._generatePayload(), true, false);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -70,12 +114,15 @@ class TimbotInfo extends Feature {
             };
         }
 
-        return JSON.stringify({
+        return {
             op: "info",
             version: _package.version,
             discord: discord
-        });
+        };
     }
 }
+
+TimbotInfo.OP_FETCH_SERVER_LIST = "list_servers";
+TimbotInfo.OP_LEAVE_SERVER = "leave_server";
 
 module.exports = TimbotInfo;

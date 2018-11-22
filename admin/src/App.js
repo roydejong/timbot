@@ -7,6 +7,7 @@ import ApiClient from "./Api/ApiClient";
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
+import ServersPage from "./Pages/Servers/ServersPage";
 
 class App extends Component {
     constructor(props) {
@@ -59,7 +60,8 @@ class App extends Component {
                         {!this.state.mustLogin &&
                         <div>
                             <Route path={"/"} exact={true} component={DashPage}/>
-                            <Route path={"/reactions"} exact={true} component={ReactionsPage}/>
+                            <Route path={"/behavior"} exact={true} component={ReactionsPage}/>
+                            <Route path={"/servers"} exact={true} component={ServersPage}/>
                         </div>
                         }
                         <ToastContainer position={toast.POSITION.BOTTOM_CENTER} />

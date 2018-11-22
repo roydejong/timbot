@@ -103,7 +103,7 @@ export default class ReactionsPage extends Component {
         let isBusy = this.state.isLoading;
 
         return (
-            <AppPage activeTab={"reactions"} title={"Manage reactions"} busy={isBusy}>
+            <AppPage activeTab={"behavior"} title={"Manage bot actions"} busy={isBusy}>
                 <div className={"ReactionsPageHead"}>
                     <div className={"container"}>
 
@@ -116,17 +116,17 @@ export default class ReactionsPage extends Component {
                         }
 
                         <div className={"ReactionsPage__controls row"}>
-                            <div className={"ReactionsPage__controls-l col-md-2"}>
+                            <div className={"ReactionsPage__controls-l col-md-3"}>
                                 <a href={"#"} className={"btn btn-success"} role={"button"} onClick={this.handleNewClick.bind(this)}>
-                                    <i className={"mdi mdi-plus"}/>
-                                    <span>New reaction</span>
+                                    <i className={"mdi mdi-plus-circle"}/>&nbsp;
+                                    <span>Set up new behavior</span>
                                 </a>
                             </div>
-                            <div className={"ReactionsPage__controls-r col-md-10"}>
+                            <div className={"ReactionsPage__controls-r col-md-9 text-right"}>
                                 <p className={"text-secondary"}>
                                     <i className={"mdi mdi-flash-circle"}/>
-                                    <strong>Reactions are automatic bot actions and responses with configurable chat triggers.</strong><br />
-                                    Add a new reaction, or click on an existing one to modify it.
+                                    <strong>Each behavior has a trigger (such as a message or event), and one or more actions.</strong><br />
+                                    Use behaviors to define how Timbot reacts to messages, posts announcements, etc.
                                 </p>
                             </div>
                         </div>
