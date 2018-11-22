@@ -5,7 +5,8 @@ class Features {
         return [
             "TimbotInfo",
             "DiscordActivityManager",
-            "ReactionManager"
+            "ReactionManager",
+            "Twitter"
         ];
     };
 
@@ -37,13 +38,21 @@ class Features {
 
         // Run the feature's enable script, then mark as enabled
         if (featureObj) {
-            Timbot.log.i(_("[Features] Enabled: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
-
             try {
+                let enableResult = null;
+
                 if (featureObj.enable) {
-                    featureObj.enable();
+                    enableResult = featureObj.enable();
                 }
 
+                if (enableResult === false) {
+                    // Feature explicitly refused to enable
+                    // It should have probably already printed an error or instructions
+                    Timbot.log.d(_("[Features] Feature enable returned false, not marked as enabled: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
+                    return false;
+                }
+
+                Timbot.log.i(_("[Features] Enabled: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
                 this._enabledFeatures[featureName] = featureObj;
                 return true;
             } catch (e) {
