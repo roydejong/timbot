@@ -33,8 +33,14 @@ class ApiClient {
             this.sendAsJson({op: "must_login"});
         } else {
             // Connection is already authed / trusted, emit login event
-            this.server.handleIncoming(this, {"op": "connect"});
+            this.afterLogin();
         }
+    }
+
+    afterLogin() {
+        this.isAuthenticated = true;
+        this.sendAsJson({op: "login", ok: true});
+        this.server.handleIncoming(this, {"op": "connect"});
     }
 
     _handleMessage(msg) {
@@ -74,7 +80,12 @@ class ApiClient {
     }
 
     _handleLogin(loginMsg) {
-        if (this._processingLogin || this.isAuthenticated) {
+        if (this._processingLogin) {
+            return;
+        }
+
+        if (this.isAuthenticated) {
+            this.sendAsJson({op: "login", ok: true});
             return;
         }
 
@@ -87,9 +98,8 @@ class ApiClient {
                 this.isAuthenticated = true;
 
                 Timbot.log.i(_("[API] User logged in to admin panel."));
-                this.sendAsJson({op: "login", ok: true});
 
-                this.server.handleIncoming(this, {"op": "connect"});
+                this.afterLogin();
             } else {
                 Timbot.log.w(_("[API] Rejected log in to admin panel with invalid password."));
                 this.sendAsJson({op: "login", ok: false});

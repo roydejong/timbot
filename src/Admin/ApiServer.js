@@ -94,7 +94,7 @@ class ApiServer {
         this._clients[client.id] = client;
 
         if (this._autoAuth) {
-            Timbot.log.w(_("[API] Admin password is blank, skipping login."));
+            Timbot.log.w(_("[API] Admin: Anonymous user logged in (password is blank)."));
             client.isAuthenticated = true;
         }
 
