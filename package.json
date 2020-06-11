@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "clevertype": "^2.0.4",
     "discord.js": "github:discordjs/discord.js#f67d682223a0b0d330ec34738a3dfe51a50f3d8f",
     "feedparser": "^2.2.9",
