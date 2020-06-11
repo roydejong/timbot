@@ -1,5 +1,5 @@
 const Twitter = require('twitter');
-const SimpleDb = require('simple-node-db');
+const MiniDb = require('./minidb');
 
 class TwitterMonitor {
     /**
@@ -19,7 +19,7 @@ class TwitterMonitor {
 
         this.client = new Twitter(clientConfig);
 
-        this.db = new SimpleDb('data/twitter-monitor');
+        this.db = new MiniDb('twitter-monitor');
 
         this.callbacks = [];
     }
@@ -89,36 +89,25 @@ class TwitterMonitor {
 
                         if (!didError) {
                             dbRecord.lastTweetId = topTweet.id;
-                            this.db.update(dbRecord.key, dbRecord, (err) => {
-                                if (err) {
-                                    console.error('[TwitterMonitor]', 'Error during database update:', err);
-                                }
-                            });
+                            this.db.put(dbRecord.key, dbRecord);
                         }
                     }
                 });
             };
 
             // Grab the last tweet that we saw from this user
-            let databaseKey = this.db.createDomainKey('user', screenName);
-
-            this.db.find(databaseKey, (err, model) => {
-                if (err || !model) {
-                    // The user does not exist in the database yet, insert now
-                    model = {
-                        id: screenName,
-                        lastTweetId: null,
-                        key: databaseKey
-                    };
-
-                    this.db.insert(databaseKey, model, () => {
-                        fnRefreshUser(model);
-                    });
-                } else {
-                    // The user exists and we now have the record
-                    fnRefreshUser(model);
-                }
-            });
+            const dbKey = `user_${screenName}`;
+            let dbModel = this.db.get(dbKey);
+            if (!dbModel) {
+                // Create new record
+                dbModel = {
+                    id: screenName,
+                    lastTweetId: null,
+                    key: dbKey
+                };
+                this.db.put(dbKey, dbModel);
+            }
+            fnRefreshUser(dbModel);
         }
     }
 }

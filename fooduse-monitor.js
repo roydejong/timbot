@@ -1,4 +1,4 @@
-const SimpleDb = require('simple-node-db');
+const MiniDb = require('./minidb');
 const FeedParser = require('feedparser');
 const request = require('request');
 const config = require('./config');
@@ -14,18 +14,16 @@ class FooduseMonitor {
         }
 
         // Db init
-        this.db = new SimpleDb('data/fooduse-monitor');
+        this.db = new MiniDb('fooduse-monitor');
 
         // Db read
         this.lastAnnouncedVideoGuid = null;
 
         try {
-            this.db.find("fooduse", (err, model) => {
-                if (!err && model) {
-                    // The user exists and we now have the record
-                    this.lastAnnouncedVideoGuid = model.lastAnnouncedVideoGuid;
-                }
-            });
+            const dbRecord = this.db.get("fooduse");
+            if (dbRecord) {
+                this.lastAnnouncedVideoGuid = dbRecord.lastAnnouncedVideoGuid;
+            }
         } catch (e) { }
 
         // Loop
@@ -91,12 +89,7 @@ class FooduseMonitor {
 
         console.debug('[Fooduse]', `Found new video to announce: ${rssItem.title} [${rssItem.guid}]`);
 
-        this.db.update("fooduse", { lastAnnouncedVideoGuid: thisGuid }, (err) => {
-            if (err) {
-                console.error('[Fooduse]', 'Error during database update:', err);
-            }
-        });
-
+        this.db.put("fooduse", { lastAnnouncedVideoGuid: thisGuid });
         this.lastAnnouncedVideoGuid = thisGuid;
         this.doAnnounce(rssItem);
     }

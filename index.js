@@ -21,7 +21,12 @@ console.log('Timbot is starting.');
 let cleverbot = null;
 
 if (config.cleverbot_token) {
-    cleverbot = new Cleverbot(config.cleverbot_token, true);
+    cleverbot = new Cleverbot({
+        apiKey: config.cleverbot_token,
+        emotion: 0,
+        engagement: 0,
+        regard: 100
+    }, true);
 }
 
 // --- Twitter monitor stuff -------------------------------------------------------------------------------------------
@@ -368,9 +373,11 @@ client.on('message', message => {
                     message.channel.startTyping();
 
                     let cleverInput = message.cleanContent;
+                    console.log(cleverInput, message.member.user.discriminator);
 
                     cleverbot.say(cleverInput, message.member.user.discriminator)
                         .then((cleverOutput) => {
+                            console.log(cleverOutput);
                             if (cleverOutput && cleverOutput.length) {
                                 cleverOutput = cleverOutput.replaceAll("cleverbot", "Timbot");
 
@@ -383,6 +390,7 @@ client.on('message', message => {
                         })
                         .catch((err) => {
                             // Err, no CB response
+                            console.log(err);
                             message.react("❌");
                             message.channel.stopTyping(true);
                         });
