@@ -1,4 +1,6 @@
 # Timbot
+[![Discord server](https://img.shields.io/discord/411670416269115394?color=%237289da&label=discord%20server&logo=discord)](https://discord.gg/qmtXjrQ)
+
 🤖 **A simple, customizable Discord bot that announces Twitch streams going live (plus a bunch of silly extras).**
 
 ![Timbot](https://user-images.githubusercontent.com/6772638/36305243-09930efe-1313-11e8-98b1-fabf0aacde88.JPG)
@@ -24,11 +26,11 @@ This bot is built on Node.js. If you do not yet have Node installed, download an
 
 https://nodejs.org/en/download/
 
-**We recommend Node v10+.**
+**I recommend Node v10+.**
 
 ### Installation
 
-To set up timbot, download the latest [repository ZIP](https://github.com/roydejong/timbot/archive/master.zip) or clone it using `git`:
+To set up Timbot, download the latest [repository ZIP](https://github.com/roydejong/timbot/archive/master.zip) or clone it using `git`:
 
     git clone git@github.com:roydejong/timbot.git
     
@@ -80,9 +82,9 @@ To configure Timbot, copy the included `config-sample.json` to `config.json` and
       "twitch_channels": "some,channel,names",
     }
 
-### Starting timbot
+### Starting Timbot
 
-Once the application has been configured, start it using `node` from the timbot installation directory:
+Once the application has been configured, start it using `node` from the installation directory:
 
     node .
   
