@@ -13,6 +13,8 @@ const TwitterMonitor = require("./twitter-monitor");
 const FooduseMonitor = require("./fooduse-monitor");
 const DiscordChannelSync = require("./discord-channel-sync");
 const ElizaHelper = require('./eliza');
+const LiveEmbed = require('./live-embed');
+const MiniDb = require('./minidb');
 
 // --- Startup ---------------------------------------------------------------------------------------------------------
 console.log('Timbot is starting.');
@@ -573,8 +575,11 @@ class StreamActivity {
     }
 }
 
-// Listen to Twitch monitor events
-let oldMsgs = { };
+// ---------------------------------------------------------------------------------------------------------------------
+// Live events
+
+let liveMessageDb = new MiniDb('live-messages');
+let messageHistory = liveMessageDb.get("history") || { };
 
 TwitchMonitor.onChannelLiveUpdate((streamData) => {
     const isLive = streamData.type === "live";
@@ -587,55 +592,44 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
     // Update activity
     StreamActivity.setChannelOnline(streamData);
 
+    // Generate message
+    const msgFormatted = `${streamData.user_name} went live on Twitch!`;
+    const msgEmbed = LiveEmbed.createForStream(streamData);
+
     // Broadcast to all target channels
-    let msgFormatted = `${streamData.user_name} went live on Twitch!`;
-
-    let msgEmbed = new Discord.MessageEmbed();
-    msgEmbed.setColor(isLive ? "RED" : "GREY");
-    msgEmbed.setURL(`https://twitch.tv/${streamData.user_name.toLowerCase()}`);
-
-    if (isLive) {
-        // Add status
-        msgEmbed.setTitle(`:red_circle: **${streamData.user_name} is live on Twitch!**`);
-        msgEmbed.addField("Stream title", streamData.title, true);
-        msgEmbed.addField("Live status", isLive ? `Live for ${streamData.viewer_count} viewers` : 'Stream has now ended', true);
-
-        // Set thumbnail
-        let thumbnailUrl = streamData.thumbnail_url;
-        thumbnailUrl = thumbnailUrl.replace("{width}", "1280");
-        thumbnailUrl = thumbnailUrl.replace("{height}", "720");
-        let thumbnailBuster = (Date.now() / 1000).toFixed(0);
-        thumbnailUrl += `?t=${thumbnailBuster}`;
-        msgEmbed.setThumbnail(thumbnailUrl);
-    } else {
-        msgEmbed.setTitle(`:white_circle: ${streamData.user_name} was live on Twitch.`);
-        msgEmbed.setDescription('The stream has now ended.');
-    }
-
     let anySent = false;
     let didSendVoice = false;
 
     for (let i = 0; i < targetChannels.length; i++) {
-        let targetChannel = targetChannels[i];
+        const discordChannel = targetChannels[i];
+        const liveMsgDiscrim = `${discordChannel.guild.id}_${discordChannel.name}_${streamData.id}`;
 
-        if (targetChannel) {
+        if (discordChannel) {
             try {
                 // Either send a new message, or update an old one
-                let messageDiscriminator = `${targetChannel.guild.id}_${targetChannel.name}_${streamData.id}`;
-                let existingMessage = oldMsgs[messageDiscriminator] || null;
+                let existingMsgId = messageHistory[liveMsgDiscrim] || null;
 
-                if (existingMessage) {
-                    // Updating existing message
-                    existingMessage.edit(msgFormatted, {
-                        embed: msgEmbed
-                    }).then((message) => {
-                        console.log('[Discord]', `Updated announce msg in #${targetChannel.name} on ${targetChannel.guild.name}`);
-                    });
+                if (existingMsgId) {
+                    // Fetch existing message
+                    discordChannel.messages.fetch(existingMsgId)
+                      .then((existingMsg) => {
+                        existingMsg.edit(msgFormatted, {
+                          embed: msgEmbed
+                        }).then((message) => {
+                          console.log('[Discord]', `Updated announce msg in #${discordChannel.name} on ${discordChannel.guild.name}`);
+                        });
 
-                    if (!isLive) {
-                        // Mem cleanup: If channel just went offline, delete the entry in the message list
-                        delete oldMsgs[messageDiscriminator];
-                    }
+                        // Clean up entry if no longer live
+                        if (!isLive) {
+                          delete messageHistory[liveMsgDiscrim];
+                          liveMessageDb.put('history', messageHistory);
+                        }
+                      })
+                      .catch(() => {
+                        // Message not found, probably deleted, bail
+                        delete messageHistory[liveMsgDiscrim];
+                        liveMessageDb.put('history', messageHistory);
+                      });
                 } else {
                     // Sending a new message
                     if (!isLive) {
@@ -652,12 +646,14 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                         msgToSend = msgFormatted + ` @${mentionMode}`
                     }
 
-                    targetChannel.send(msgToSend, {
+                    discordChannel.send(msgToSend, {
                         embed: msgEmbed
                     })
                     .then((message) => {
-                        oldMsgs[messageDiscriminator] = message;
-                        console.log('[Discord]', `Sent announce msg to #${targetChannel.name} on ${targetChannel.guild.name}`);
+                        console.log('[Discord]', `Sent announce msg to #${discordChannel.name} on ${discordChannel.guild.name}`)
+
+                        messageHistory[liveMsgDiscrim] = message.id;
+                        liveMessageDb.put('history', messageHistory);
                     });
 
                     // Voice broadcast, looks like this is a new broadcast
@@ -676,6 +672,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
         }
     }
 
+    liveMessageDb.put('history', messageHistory);
     return anySent;
 });
 
