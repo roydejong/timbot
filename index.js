@@ -504,15 +504,15 @@ client.on('message', message => {
 });
 
 console.log('[Discord]', 'Logging in...');
-client.login(config.bot_token);
+client.login(config.discord_bot_token);
 
 // Activity updater
 class StreamActivity {
     /**
      * Registers a channel that has come online, and updates the user activity.
      */
-    static setChannelOnline(channel) {
-        this.onlineChannels[channel.name] = channel;
+    static setChannelOnline(stream) {
+        this.onlineChannels[stream.user_name] = stream;
 
         this.updateActivity();
     }
@@ -520,8 +520,8 @@ class StreamActivity {
     /**
      * Marks a channel has having gone offline, and updates the user activity if needed.
      */
-    static setChannelOffline(channel) {
-        delete this.onlineChannels[channel.name];
+    static setChannelOffline(stream) {
+        delete this.onlineChannels[stream.user_name];
 
         this.updateActivity();
     }
@@ -529,15 +529,13 @@ class StreamActivity {
     /**
      * Fetches the channel that went online most recently, and is still currently online.
      */
-    static getDisplayChannel() {
+    static getMostRecentStreamInfo() {
         let lastChannel = null;
-
         for (let channelName in this.onlineChannels) {
             if (typeof channelName !== "undefined" && channelName) {
                 lastChannel = this.onlineChannels[channelName];
             }
         }
-
         return lastChannel;
     }
 
@@ -546,15 +544,15 @@ class StreamActivity {
      * Either clears the activity if no channels are online, or sets it to "watching" if a stream is up.
      */
     static updateActivity() {
-        let displayChannel = this.getDisplayChannel();
+        let streamInfo = this.getMostRecentStreamInfo();
 
-        if (displayChannel) {
-            this.discordClient.user.setActivity(displayChannel.display_name, {
-                "url": displayChannel.url,
+        if (streamInfo) {
+            this.discordClient.user.setActivity(streamInfo.user_name, {
+                "url": `https://twitch.tv/${streamInfo.user_name.toLowerCase()}`,
                 "type": "STREAMING"
             });
 
-            console.log('[StreamActivity]', `Update current activity: watching ${displayChannel.display_name}.`);
+            console.log('[StreamActivity]', `Update current activity: watching ${streamInfo.user_name}.`);
         } else {
             console.log('[StreamActivity]', 'Cleared current activity.');
 
@@ -578,34 +576,40 @@ class StreamActivity {
 // Listen to Twitch monitor events
 let oldMsgs = { };
 
-TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsLive) => {
+TwitchMonitor.onChannelLiveUpdate((streamData) => {
+    const isLive = streamData.type === "live";
+
+    // Refresh channel list
     try {
-        // Refresh channel list
         syncServerList(false);
     } catch (e) { }
 
     // Update activity
-    StreamActivity.setChannelOnline(twitchChannel);
+    StreamActivity.setChannelOnline(streamData);
 
     // Broadcast to all target channels
-    let msgFormatted = `${twitchChannel.display_name} went live on Twitch!`;
+    let msgFormatted = `${streamData.user_name} went live on Twitch!`;
 
-    let msgEmbed = new Discord.MessageEmbed({
-        description: `:red_circle: **${twitchChannel.display_name} is currently live on Twitch!**`,
-        title: twitchChannel.url,
-        url: twitchChannel.url
-    });
+    let msgEmbed = new Discord.MessageEmbed();
+    msgEmbed.setColor(isLive ? "RED" : "GREY");
+    msgEmbed.setURL(`https://twitch.tv/${streamData.user_name.toLowerCase()}`);
 
-    let cacheBustTs = (Date.now() / 1000).toFixed(0);
+    if (isLive) {
+        // Add status
+        msgEmbed.setTitle(`:red_circle: **${streamData.user_name} is live on Twitch!**`);
+        msgEmbed.addField("Stream title", streamData.title, true);
+        msgEmbed.addField("Live status", isLive ? `Live for ${streamData.viewer_count} viewers` : 'Stream has now ended', true);
 
-    msgEmbed.setColor(twitchChannelIsLive ? "RED" : "GREY");
-    msgEmbed.setThumbnail(twitchStream.preview.medium + "?t=" + cacheBustTs);
-    msgEmbed.addField("Game", twitchStream.game || "(No game)", true);
-    msgEmbed.addField("Status", twitchChannelIsLive ? `Live for ${twitchStream.viewers} viewers` : 'Stream has now ended', true);
-    msgEmbed.setFooter(twitchChannel.status, twitchChannel.logo);
-
-    if (!twitchChannelIsLive) {
-        msgEmbed.setDescription(`:white_circle:  ${twitchChannel.display_name} was live on Twitch.`);
+        // Set thumbnail
+        let thumbnailUrl = streamData.thumbnail_url;
+        thumbnailUrl = thumbnailUrl.replace("{width}", "1280");
+        thumbnailUrl = thumbnailUrl.replace("{height}", "720");
+        let thumbnailBuster = (Date.now() / 1000).toFixed(0);
+        thumbnailUrl += `?t=${thumbnailBuster}`;
+        msgEmbed.setThumbnail(thumbnailUrl);
+    } else {
+        msgEmbed.setTitle(`:white_circle: ${streamData.user_name} was live on Twitch.`);
+        msgEmbed.setDescription('The stream has now ended.');
     }
 
     let anySent = false;
@@ -617,7 +621,7 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
         if (targetChannel) {
             try {
                 // Either send a new message, or update an old one
-                let messageDiscriminator = `${targetChannel.guild.id}_${targetChannel.name}_${twitchChannel.name}_${twitchStream.created_at}`;
+                let messageDiscriminator = `${targetChannel.guild.id}_${targetChannel.name}_${streamData.id}`;
                 let existingMessage = oldMsgs[messageDiscriminator] || null;
 
                 if (existingMessage) {
@@ -628,20 +632,20 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
                         console.log('[Discord]', `Updated announce msg in #${targetChannel.name} on ${targetChannel.guild.name}`);
                     });
 
-                    if (!twitchChannelIsLive) {
+                    if (!isLive) {
                         // Mem cleanup: If channel just went offline, delete the entry in the message list
                         delete oldMsgs[messageDiscriminator];
                     }
                 } else {
                     // Sending a new message
-                    if (!twitchChannelIsLive) {
+                    if (!isLive) {
                         // We do not post "new" notifications for channels going/being offline
                         continue;
                     }
 
                     // Expand the message with a @mention for "here" or "everyone"
                     // We don't do this in updates because it causes some people to get spammed
-                    let mentionMode = (config.discord_mentions && config.discord_mentions[twitchChannel.name.toLowerCase()]) || null;
+                    let mentionMode = (config.discord_mentions && config.discord_mentions[streamData.user_name.toLowerCase()]) || null;
                     let msgToSend = msgFormatted;
 
                     if (mentionMode) {
@@ -659,13 +663,7 @@ TwitchMonitor.onChannelLiveUpdate((twitchChannel, twitchStream, twitchChannelIsL
                     // Voice broadcast, looks like this is a new broadcast
                     if (config.voice_enabled && !didSendVoice) {
                         try {
-                            let ttsMessage = `Hey, everyone. ${twitchChannel.name} just went live on Twitch. ${twitchChannel.status}.`;
-
-                            if (twitchStream.game) {
-                                ttsMessage += ` The game being played is "${twitchStream.game.toString()}".`;
-                            }
-
-                            Voice.sayEverywhere(ttsMessage);
+                            Voice.sayEverywhere(`Hey. ${streamData.user_name} just went live on Twitch!`);
                             didSendVoice = true;
                         } catch (e) { }
                     }
@@ -691,9 +689,9 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
     }
 });
 
-TwitchMonitor.onChannelOffline((channelData) => {
+TwitchMonitor.onChannelOffline((streamData) => {
     // Update activity
-    StreamActivity.setChannelOffline(channelData);
+    StreamActivity.setChannelOffline(streamData);
 });
 
 // --- Common functions ------------------------------------------------------------------------------------------------
