@@ -83,6 +83,8 @@ export default class ServersPage extends Component {
                 toast.error("Unable to send delete request.");
                 console.error('(ServersPage)', 'Error sending leave request:', err);
             });
+
+        toast.info(`Leaving server: ${server.name}`);
     }
 
     render() {

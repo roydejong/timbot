@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import './ServersTable.scss';
 import PropTypes from 'prop-types';
 import DeleteButton from "../../Common/DeleteButton";
+import moment from "moment";
 
 export default class ServersTable extends Component {
     static getColumns() {
@@ -26,11 +27,10 @@ export default class ServersTable extends Component {
                     ts = parseInt(ts);
 
                     if (!ts) {
-                        return "???";
+                        return "Unknown";
                     }
 
-                    let date = new Date(ts);
-                    return date.toDateString();
+                    return moment(ts).format("LLL");
                 }
             },
             "members": {
