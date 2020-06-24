@@ -1,37 +1,20 @@
 import React, {Component} from 'react';
-import './ServersTable.css';
+import './ServersTable.scss';
 import PropTypes from 'prop-types';
 import DeleteButton from "../../Common/DeleteButton";
 
 export default class ServersTable extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     static getColumns() {
-        let formatIcon = (iconUrl) => {
-            if (!iconUrl) {
-                return <div className={"ServersTable__no-img"}>?</div>;
-            }
-
-            return <img src={iconUrl} alt={"Server icon"} height={50} width={50} style={{ borderRadius: "50%" }}/>;
-        };
-
-        let formatTs = (ts) => {
-            ts = parseInt(ts);
-
-            if (!ts) {
-                return "???";
-            }
-
-            let date = new Date(ts);
-            return date.toDateString();
-        };
-
         return {
             "icon": {
                 "label": "",
-                "format": formatIcon,
+                "format": (iconUrl) => {
+                    if (!iconUrl) {
+                        return <div className={"ServersTable__no-img"}>?</div>;
+                    }
+
+                    return <img src={iconUrl} alt={"Server icon"} height={50} width={50} style={{ borderRadius: "50%" }}/>;
+                },
                 "width": 50
             },
             "name": {
@@ -39,13 +22,30 @@ export default class ServersTable extends Component {
             },
             "joined": {
                 "label": "Joined",
-                "format": formatTs
+                "format": (ts) => {
+                    ts = parseInt(ts);
+
+                    if (!ts) {
+                        return "???";
+                    }
+
+                    let date = new Date(ts);
+                    return date.toDateString();
+                }
             },
             "members": {
                 "label": "Members"
             },
             "owner_name": {
-                "label": "Owner"
+                "label": "Owner",
+                "format": (name, row) => {
+                    return <a className={"owner-indicator"} href={`https://discordapp.com/channels/@me/${row.owner_id}`}
+                        target={"_blank"} rel="noopener noreferrer" title={"Direct Message user in Discord"}>
+                        <img src={row.owner_avatar} alt={`${row.owner_name}'s avatar`}
+                             height={32} width={32} className={"user-avatar"}/>
+                        <span>{row.owner_name}</span>
+                    </a>;
+                }
             }
         };
     }
@@ -85,11 +85,11 @@ export default class ServersTable extends Component {
                                 value = column.format(value, row);
                             }
 
-                            return <td className={"ServersTable__col"} scope="col" key={`th_${key}`}
+                            return <td className={"ServersTable__col"} key={`th_${key}`}
                                        onClick={this.handleRowClick.bind(this, row)}
                                        width={column.width || null}>{value}</td>;
                         })}
-                        <td scope={"row"}>
+                        <td className={"actions-col"}>
                             <DeleteButton label={"Leave"} onDelete={this.handleRowDeleteClick.bind(this, row)}
                                           icon={<i className={"mdi mdi-exit-run"}/>}
                             />

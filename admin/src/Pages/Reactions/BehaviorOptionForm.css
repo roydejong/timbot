@@ -1,0 +1,12 @@
+.BehaviorOptionForm {
+    margin-top: 1rem;
+}
+
+.BehaviorOptionForm--blank {
+    border: 1px solid rgba(0, 0, 0, .05);
+    border-radius: 4px;
+    padding: 10px;
+}
+.BehaviorOptionForm--blank > p {
+    margin: 0;
+}

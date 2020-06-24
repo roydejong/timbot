@@ -4,10 +4,6 @@ import PropTypes from 'prop-types';
 import DeleteButton from "../../Common/DeleteButton";
 
 export default class ReactionsTable extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     static getColumns() {
         // let formatTriggerType = (val) => {
         //     return ReactionEdit.TYPES[val] || `Unknown (${val})`;

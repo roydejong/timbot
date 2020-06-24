@@ -1,10 +1,11 @@
-import React, {Component} from 'react';
+import React from 'react';
 import './Navbar.css';
 import NavbarItem from "./NavbarItem";
 import ApiClient from "../Api/ApiClient";
 import PropTypes from 'prop-types';
+import {Link} from "react-router-dom";
 
-export default class Navbar extends Component {
+export default class Navbar extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -52,11 +53,11 @@ export default class Navbar extends Component {
         return (
             <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div className={"container"}>
-                    <a className="navbar-brand mb-0 h1" href="/" title={"Timbot"}>
+                    <Link className="navbar-brand mb-0 h1" to={"/"} title={"Timbot"}>
                         <img src="/images/timbot_bepis2.png" width="32" height="32"
                              className="d-inline-block align-top navbar-brand-image" alt="Timbot"/>
                         Timbot
-                    </a>
+                    </Link>
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
                         <ul className="navbar-nav mr-auto">
                             {this.props.enabled && Object.keys(tabs).map((tabId) => {
@@ -76,6 +77,7 @@ export default class Navbar extends Component {
                             <a className={"discord-button"} href={"https://discord.gg/cEFTnKb"}
                                title={"Timbot discord for support, development and discussion"}
                                target={"_blank"}
+                               rel="noopener noreferrer"
                             >
                                 <i className={"mdi mdi-discord"}/>
                                 <span>Discord</span>

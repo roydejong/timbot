@@ -1,9 +1,9 @@
-import React, {Component} from 'react';
+import React from 'react';
 import './NavbarItem.css';
 import PropTypes from 'prop-types';
 import {Link} from "react-router-dom";
 
-export default class NavbarItem extends Component {
+export default class NavbarItem extends React.PureComponent {
     render() {
         let classNames = ["nav-item NavbarItem"];
 

@@ -18,6 +18,7 @@
     "express-ws": "^4.0.0",
     "gettext-parser": "^3.0.0",
     "node-gettext": "^2.0.0",
+    "twitter": "^1.7.1",
     "winston": "^3.1.0"
   }
 }

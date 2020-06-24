@@ -68,7 +68,11 @@ export default class ServersPage extends Component {
         });
     }
 
-    handleServerLeave(server) {
+    handleServerClick(server) {
+        // ...
+    }
+
+    handleServerDelete(server) {
         let req = new ApiRequest({
             "op": "leave_server",
             "id": server.id
@@ -89,9 +93,9 @@ export default class ServersPage extends Component {
                 <div className={"ServersPage"}>
                     <div className={"container"}>
                         <div className={"ServersPage__table"}>
-                            <ServersTable servers={this.state.servers}
-                                          onServerClicked={null}
-                                          onServerDelete={this.handleServerLeave.bind(this)}
+                            <ServersTable servers={this.state.servers || []}
+                                          onServerClicked={this.handleServerClick.bind(this)}
+                                          onServerDelete={this.handleServerDelete.bind(this)}
                             />
                         </div>
                     </div>

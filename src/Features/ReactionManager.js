@@ -1,5 +1,8 @@
 const Feature = require('./Base/Feature');
 const Timbot = require('../Core/Timbot');
+const Action = require('../Behavior/Action');
+const Trigger = require('../Behavior/Trigger');
+const BehaviorOption = require('../Behavior/BehaviorOption');
 
 /**
  * Manages the Discord bot's current activity / status.
@@ -13,6 +16,10 @@ class ReactionManager extends Feature {
         this._handleApiWriteReaction = this._handleApiWriteReaction.bind(this);
         this._handleApiReactionDelete = this._handleApiReactionDelete.bind(this);
         this._handleApiReactionsFetch = this._handleApiReactionsFetch.bind(this);
+
+        this._handleApiConfigFetch = this._handleApiConfigFetch.bind(this);
+        this._handleApiBehaviorValidate = this._handleApiBehaviorValidate.bind(this);
+
         this._handleDiscordMessage = this._handleDiscordMessage.bind(this);
     }
 
@@ -31,6 +38,20 @@ class ReactionManager extends Feature {
         Timbot.api.registerApi(ReactionManager.API_OP_REACTION_DELETE, this._handleApiReactionDelete);
         Timbot.api.registerApi(ReactionManager.API_OP_REACTIONS_FETCH, this._handleApiReactionsFetch);
 
+        Timbot.api.registerApi(ReactionManager.API_OP_BEHAVIOR_CONFIG, this._handleApiConfigFetch);
+        Timbot.api.registerApi(ReactionManager.API_OP_BEHAVIOR_VALIDATE, this._handleApiBehaviorValidate);
+
+        // Register triggers
+        let chatTriggerOptions = [
+            new BehaviorOption("trigger_text", BehaviorOption.TYPE_STRING, "Trigger text", true),
+            new BehaviorOption("must_mention", BehaviorOption.TYPE_BOOLEAN, "Must mention bot (@ or DM)"),
+            new BehaviorOption("insensitive", BehaviorOption.TYPE_BOOLEAN, "Insensitive (ignore casing and grammatical punctuation)")
+        ];
+
+        Timbot.behavior.registerTrigger(new Trigger("discord_message_keyword", "Discord message: Contains keyword or phrase", chatTriggerOptions));
+        Timbot.behavior.registerTrigger(new Trigger("discord_message_substring", "Discord message: Contains text", chatTriggerOptions));
+        Timbot.behavior.registerTrigger(new Trigger("discord_message", "Discord message: Matches exactly", chatTriggerOptions));
+
         // Register message filter
         Timbot.messenger.registerFilter(this._handleDiscordMessage);
     }
@@ -44,8 +65,16 @@ class ReactionManager extends Feature {
         Timbot.api.unregisterApi(ReactionManager.API_OP_REACTION_DELETE, this._handleApiReactionDelete);
         Timbot.api.unregisterApi(ReactionManager.API_OP_REACTIONS_FETCH, this._handleApiReactionsFetch);
 
+        Timbot.api.unregisterApi(ReactionManager.API_OP_BEHAVIOR_CONFIG, this._handleApiConfigFetch);
+        Timbot.api.unregisterApi(ReactionManager.API_OP_BEHAVIOR_VALIDATE, this._handleApiBehaviorValidate);
+
         // Unregister message filter
         Timbot.messenger.unregisterFilter(this._handleDiscordMessage);
+
+        // Unregister triggers
+        Timbot.behavior.unregisterTrigger("discord_message_keyword");
+        Timbot.behavior.unregisterTrigger("discord_message_substring");
+        Timbot.behavior.unregisterTrigger("discord_message");
 
         // Clear memory
         this._data = null;
@@ -116,6 +145,26 @@ class ReactionManager extends Feature {
 
         ws.send(JSON.stringify(payload));
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    _handleApiConfigFetch(client) {
+        let header = { "op": "behavior_config" };
+        let szData = Timbot.behavior.serializeConfig();
+
+        client.sendAsJson(Object.assign(header, szData));
+    }
+
+    _handleApiBehaviorValidate(client, data) {
+        let validateMode = data.mode;
+        let formData = (data && data.form) || null;
+
+        if (formData) {
+
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     _handleDiscordMessage(client, message) {
         if (message.author.bot || message.system) {
@@ -293,6 +342,9 @@ class ReactionManager extends Feature {
 ReactionManager.API_OP_REACTION_WRITE = "reaction_write";
 ReactionManager.API_OP_REACTION_DELETE = "reaction_delete";
 ReactionManager.API_OP_REACTIONS_FETCH = "reactions_fetch";
+
+ReactionManager.API_OP_BEHAVIOR_CONFIG = "behavior_config";
+ReactionManager.API_OP_BEHAVIOR_VALIDATE = "behavior_validate";
 
 ReactionManager.TYPE_KEYWORD = "keyword";
 ReactionManager.TYPE_TEXT = "text";

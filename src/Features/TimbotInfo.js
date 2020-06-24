@@ -10,6 +10,8 @@ class TimbotInfo extends Feature {
         this._handleApiUserConnected = this._handleApiUserConnected.bind(this);
         this._handleApiFetchServerList = this._handleApiFetchServerList.bind(this);
         this._handleApiLeaveServer = this._handleApiLeaveServer.bind(this);
+
+        this._discordAppInfo = null;
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -39,6 +41,13 @@ class TimbotInfo extends Feature {
         if (eventName === Feature.EVENT_DISCORD_READY || eventName === Feature.EVENT_DISCORD_DISCONNECTED) {
             // Discord connected or disconnected, send this update through to the admin panel
             this.broadcastAdminInfo();
+
+            // Query bot application info
+            Timbot.discord.client.fetchApplication()
+              .then((discordApp) => {
+                  this._discordAppInfo = discordApp;
+                  this.broadcastAdminInfo();
+              })
         }
     }
 
@@ -60,7 +69,9 @@ class TimbotInfo extends Feature {
                     icon: guild.iconURL,
                     joined: guild.joinedTimestamp,
                     members: guild.memberCount,
-                    owner_name: guild.owner.user.username
+                    owner_name: guild.owner.user.tag,
+                    owner_avatar: guild.owner.user.displayAvatarURL,
+                    owner_id: guild.owner.user.id
                 });
             });
         }
@@ -112,6 +123,11 @@ class TimbotInfo extends Feature {
                 discriminator: dUser.discriminator,
                 avatar: dUser.avatarURL
             };
+
+            if (this._discordAppInfo) {
+                // This is fetched separately when Discord connects (see event handler above)
+                discord.application = this._discordAppInfo;
+            }
         }
 
         return {

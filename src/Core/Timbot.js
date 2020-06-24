@@ -52,6 +52,9 @@ class Timbot {
             return;
         }
 
+        // Init Behavior Brain
+        this._initBehaviorBrain();
+
         // Init Features
         this._initFeatures();
 
@@ -255,6 +258,18 @@ class Timbot {
 
         this.discord = new Discord(this.config, this.messenger);
         this.discord.start();
+    }
+
+    /**
+     * Init step: Initialize the behavior brain.
+     *
+     * @private
+     */
+    static _initBehaviorBrain() {
+        const BehaviorBrain = require('../Behavior/BehaviorBrain');
+
+        this.behavior = new BehaviorBrain();
+        this.behavior.load();
     }
 
     /**

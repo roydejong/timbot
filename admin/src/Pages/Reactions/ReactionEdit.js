@@ -5,17 +5,25 @@ import Modal from "../../Common/Modal";
 import DiscordPreviewer from "../../Common/DiscordPreviewer";
 import ApiRequest from "../../Api/ApiRequest";
 import {toast} from 'react-toastify';
+import ApiClient from "../../Api/ApiClient";
+import BehaviorOptionForm from "./BehaviorOptionForm";
 
 export default class ReactionEdit extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            isLoadingConfig: false,
+            config: null,
             data: null,
             isEditing: false,
             isSubmitting: false,
-            step: 0
+            step: 0,
+            selectedTrigger: null
         };
+
+        this.handleApiConnect = this.handleApiConnect.bind(this);
+        this.handleConfigData = this.handleConfigData.bind(this);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -26,7 +34,59 @@ export default class ReactionEdit extends Component {
 
     componentDidMount() {
         this.processProps(this.props);
+        
+        ApiClient.subscribeGreedy("ReactionEdit_connect", ApiClient.EVENT_TYPE_CONNECTED, this.handleApiConnect);
+        ApiClient.subscribeGreedy("ReactionEdit_config", "behavior_config", this.handleConfigData);
+
+        if (ApiClient.isConnected) {
+            this.loadConfig();
+        }
     }
+
+    componentWillUnmount() {
+        ApiClient.unsubscribe("ReactionEdit_connect");
+        ApiClient.unsubscribe("ReactionEdit_fetch");
+    }
+
+    loadConfig() {
+        if (this.state.isLoadingConfig) {
+            return;
+        }
+
+        this.setState({
+            isLoadingConfig: true
+        });
+
+        let req = new ApiRequest({
+            "op": "behavior_config"
+        });
+
+        req.send()
+            .catch((err) => {
+                toast.error("Unable to load behavior editor data.");
+
+                console.error('(ReactionEdit)', 'Error fetching config:', err);
+
+                this.setState({
+                    isLoadingConfig: false
+                });
+            });
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    handleApiConnect() {
+        this.loadConfig();
+    }
+
+    handleConfigData(data) {
+        this.setState({
+            isLoadingConfig: false,
+            config: data
+        });
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     processProps(props) {
         let isEditing = !!props.reaction;
@@ -45,6 +105,24 @@ export default class ReactionEdit extends Component {
     }
 
     // -----------------------------------------------------------------------------------------------------------------
+
+    handleTriggerTypeChange(e) {
+        let newTriggerKey = e.target.value;
+
+        let selectedTrigger = this.state.config.triggers.find((trigger) => {
+            return trigger.key === newTriggerKey;
+        });
+
+        if (selectedTrigger) {
+            let nextData = this.state.data;
+            nextData["trigger_type"] = selectedTrigger.key;
+
+            this.setState({
+                selectedTrigger: selectedTrigger,
+                data: nextData
+            });
+        }
+    }
 
     handleFieldEdit(propName, e) {
         let nextData = this.state.data;
@@ -122,6 +200,10 @@ export default class ReactionEdit extends Component {
         }
     }
 
+    handleBehaviorOptionChange() {
+        alert('!');
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
 
     render() {
@@ -129,9 +211,9 @@ export default class ReactionEdit extends Component {
             return (null);
         }
 
-        let modalTitle = this.state.isEditing ? "Edit reaction" : "Set up new reaction";
+        let modalTitle = this.state.isEditing ? "Edit behavior" : "Set up new behavior";
 
-        let confirmLabel = "Save reaction";
+        let confirmLabel = "Save behavior";
         let confirmEnabled = true;
 
         let cancelLabel = "Cancel";
@@ -141,15 +223,17 @@ export default class ReactionEdit extends Component {
         if (this.state.step === 0) {
             modalTitle += " (1 of 2)";
 
-            confirmLabel = "Continue";
+            confirmLabel = "Next →";
             confirmEnabled = this.state.data.type && this.state.data.trigger;
 
             showTriggerText = !!this.state.data.type;
-        } else if (this.state.step === 1) {
-            modalTitle += " (2 of 2)";
-            confirmEnabled = this.state.data.response || this.state.data.emote;
+        } else {
+            if (this.state.step === 1) {
+                modalTitle += " (2 of 2)";
+                confirmEnabled = this.state.data.response || this.state.data.emote;
+            }
 
-            cancelLabel = "← Go back";
+            cancelLabel = "← Step back";
         }
 
         return (
@@ -160,74 +244,35 @@ export default class ReactionEdit extends Component {
                 <div className={"ReactionEdit"}>
                     <form>
                         <div className="form-group">
-                            {this.state.step === 0 &&
+                            {this.state.isLoadingConfig &&
                             <div>
-                                <label><i className={"mdi mdi-lightbulb-on-outline"}/> What triggers the reaction?</label>
-
-                                <select className="form-control" value={this.state.data.type || -1}
-                                        onChange={this.handleFieldEdit.bind(this, "type")}>
-                                    <option value={-1} disabled={true}>Choose trigger type</option>
-                                    {Object.keys(ReactionEdit.TYPES).map((key) => {
-                                        let value = ReactionEdit.TYPES[key];
-                                        return <option key={'reaction_type_' + key} value={key}>{value}</option>;
-                                    })}
-                                </select>
-
-                                {showTriggerText &&
-                                <div className={"form-group-secondary"}>
-                                    <input type="text" className="form-control"
-                                           placeholder={"Enter trigger text"}
-                                           value={this.state.data.trigger || ""}
-                                           onChange={this.handleFieldEdit.bind(this, "trigger")}
-                                    />
-                                </div>
-                                }
-
-                                {showTriggerText &&
-                                <div className={"form-group-secondary"}>
-                                    <div className="form-check">
-                                        <input className="form-check-input" type="checkbox" id="must_mention"
-                                               checked={this.state.data.must_mention === 1}
-                                               onChange={this.handleFieldCheckEdit.bind(this, "must_mention")}
-                                        />
-                                        <label className="form-check-label" htmlFor="must_mention">
-                                            Only trigger if bot is mentioned or receives as DM
-                                        </label>
-                                    </div>
-                                </div>
-                                }
-
-                                {showTriggerText &&
-                                <div className={"form-group-secondary"}>
-                                    <div className="form-check">
-                                        <input className="form-check-input" type="checkbox" id="insensitive"
-                                               checked={this.state.data.insensitive === 1}
-                                               onChange={this.handleFieldCheckEdit.bind(this, "insensitive")}
-                                        />
-                                        <label className="form-check-label" htmlFor="insensitive">
-                                            Insensitive: Ignore casing and grammatical punctuation
-                                        </label>
-                                    </div>
-                                </div>
-                                }
-
-                                {showTriggerText && this.state.data.trigger && this.state.data.type &&
-                                    <DiscordPreviewer exampleTrigger={this.state.data.trigger}
-                                                      exampleTriggerMode={this.state.data.type}
-                                                      exampleTriggerMustMention={this.state.data.must_mention === 1}
-                                                      exampleTriggerInsensitive={this.state.data.insensitive === 1}
-                                    />
-                                }
-
-                                <small className={"text-muted"}>
-                                    <i className={"mdi mdi-earth"}/> Currently, all triggers are global. This rule will
-                                    apply in every server and channel, including any DMs sent to the bot.
-                                </small>
-
+                                Loading behavior config...
                             </div>
                             }
 
-                            {this.state.step === 1 &&
+                            {!this.state.isLoadingConfig && this.state.step === 0 &&
+                            <div>
+                                <label><i className={"mdi mdi-lightbulb-on-outline"}/> What will trigger this behavior?</label>
+
+                                <select className="form-control" value={this.state.data.trigger_type || -1}
+                                        onChange={this.handleTriggerTypeChange.bind(this)}>
+                                    <option value={-1} disabled={true}>Choose trigger type</option>
+                                    {Object.values(this.state.config.triggers).map((trigger) => {
+                                        return <option value={trigger.key} key={`trigger_${trigger.key}`}>{trigger.label}</option>;
+                                    })}
+                                </select>
+
+                                {this.state.selectedTrigger &&
+                                    <BehaviorOptionForm options={this.state.selectedTrigger.options}
+                                                        entityName={"Trigger"}
+                                                        onEntryChange={this.handleBehaviorOptionChange.bind(this)}
+                                    />
+                                }
+                                
+                            </div>
+                            }
+
+                            {!this.state.isLoadingConfig && this.state.step === 1 &&
                                 <div className="form-group">
                                     <label htmlFor="type"><i className={"mdi mdi-chat-processing"}/> How should the bot react?</label>
 

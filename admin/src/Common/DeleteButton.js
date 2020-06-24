@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import './DeleteButton.css';
+import './DeleteButton.scss';
 import PropTypes from 'prop-types';
 
 export default class DeleteButton extends Component {
@@ -64,7 +64,6 @@ export default class DeleteButton extends Component {
         let classNames = [];
         let faceLabel = this.props.label;
         let icon = this.props.icon || <i className={"mdi mdi-delete"}/>;
-        let isDisabled = false;
 
         classNames.push("btn");
         classNames.push("DeleteButton");
@@ -93,10 +92,10 @@ export default class DeleteButton extends Component {
         }
 
         return (
-            <a href={"#"} title={this.props.label} className={classNames.join(' ')} onClick={this.handleClick.bind(this)}>
+            <button title={this.props.label} className={classNames.join(' ')} onClick={this.handleClick.bind(this)}>
                 {icon}
                 <span>{faceLabel}</span>
-            </a>
+            </button>
         );
     }
 }

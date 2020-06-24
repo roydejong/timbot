@@ -1,9 +1,9 @@
-import React, {Component} from 'react';
+import React from 'react';
 import './AppPage.css';
 import Navbar from "./Navbar";
 import PropTypes from 'prop-types';
 
-export default class AppPage extends Component {
+export default class AppPage extends React.PureComponent {
     render() {
         let classNames = [];
         classNames.push("AppPage");

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import ApiClient from "../Api/ApiClient";
-import './TimbotInfo.css';
+import './TimbotInfo.scss';
 
 export default class TimbotInfo extends Component {
     constructor(props) {
@@ -30,19 +30,29 @@ export default class TimbotInfo extends Component {
     render() {
         let cardBody = (null);
 
+        let discordLink = (
+          <a href={"https://github.com/roydejong/timbot"}
+             className={"external-link"}
+             target={"_blank"}
+             rel="noopener noreferrer">
+              <i className={"mdi mdi-github"}/>
+              <span>View project on GitHub</span>
+          </a>
+        );
+
         if (!this.state.isAvailable) {
             cardBody = <div className="card-body">
                 <p className={"card-text text-secondary"}>
                     No status information is available right now<br />
-                    <a href={"https://github.com/roydejong/timbot"} target={"_blank"}>View project on GitHub</a>
+                    {discordLink}
                 </p>
             </div>;
         } else {
             cardBody = <div className="card-body">
-                <p className={"card-text text-secondary"}>
-                    Version {this.state.data.version}<br />
-                    <a href={"https://github.com/roydejong/timbot"} target={"_blank"}>View project on GitHub</a>
-                </p>
+
+                <div className={"version-text"}>Version {this.state.data.version}</div>
+                {discordLink}
+
                 {this.state.data.discord.connected &&
                 <div className={"DiscordCard"}>
                     <img className={"DiscordCard__avatar"} src={this.state.data.discord.avatar} alt={this.state.data.discord.tag}/>
@@ -53,6 +63,7 @@ export default class TimbotInfo extends Component {
                     </div>
                 </div>
                 }
+
                 {!this.state.data.discord.connected &&
                 <div className={"DiscordStatusErr"}>
                     <div>
@@ -64,6 +75,16 @@ export default class TimbotInfo extends Component {
                     </div>
                 </div>
                 }
+
+                {this.state.data.discord.application && (
+                  <a className={"btn btn-primary invite-button"}
+                     target={"_blank"} rel="noopener noreferrer"
+                     href={`https://discord.com/oauth2/authorize?client_id=510984229686083596&scope=bot&permissions=8`}>
+                      <span>Server invite</span>
+                      <i className={"mdi mdi-open-in-new"}/>
+                  </a>
+                )}
+
             </div>;
         }
 

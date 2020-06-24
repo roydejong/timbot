@@ -6,7 +6,7 @@ class Features {
             "TimbotInfo",
             "DiscordActivityManager",
             "ReactionManager",
-            "Twitter"
+            "TwitterMonitor"
         ];
     };
 
@@ -48,7 +48,7 @@ class Features {
                 if (enableResult === false) {
                     // Feature explicitly refused to enable
                     // It should have probably already printed an error or instructions
-                    Timbot.log.d(_("[Features] Feature enable returned false, not marked as enabled: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
+                    Timbot.log.d(_("[Features] Feature enable returned false: {0} {1}", featureName, (isBuiltIn ? "[Built-in]" : "")));
                     return false;
                 }
 

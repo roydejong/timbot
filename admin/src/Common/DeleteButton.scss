@@ -1,14 +1,19 @@
 .DeleteButton {
     transition: all .2s ease;
     position: relative;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
     padding-top: 0;
     padding-bottom: 0;
     min-height: 36px;
-    width: 93px;
     line-height: normal;
+    font-weight: 500;
+
+    i {
+        margin-right: 5px;
+    }
 }
 
 .DeleteButton--confirm:before {

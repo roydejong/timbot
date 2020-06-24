@@ -7,5 +7,11 @@
     "password": "CHANGE_ME",
     "address": "0.0.0.0",
     "port": 4269
+  },
+  "twitter": {
+    "api_key": "",
+    "api_secret": "",
+    "access_token": "",
+    "access_token_secret": ""
   }
 }

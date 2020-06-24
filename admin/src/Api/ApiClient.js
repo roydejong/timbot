@@ -21,27 +21,27 @@ export default class ApiClient {
 
         this.ws = new WebSocket(this.wsUrl);
 
-        console.info('[api]', `Connecting to ${this.wsUrl}...`);
+        console.info('[API]', `⏳ Connecting to ${this.wsUrl}...`);
 
         this.ws.addEventListener('open', () => {
-            console.info('[api]', 'Websocket open.');
+            console.info('[API]', '✅ Websocket connected!');
             this.retrySecs = 3;
             this.emit(ApiClient.EVENT_TYPE_CONNECTED, null, false);
         });
 
         this.ws.addEventListener('message', (msg) => {
-            console.info('[api]', 'Websocket message:', msg.data);
+            console.debug('[API]', 'Websocket message:', msg.data);
             ApiClient.handleIncoming(msg.data);
         });
 
         this.ws.addEventListener('close', () => {
-            console.warn('[api]', 'Websocket closed.');
+            console.warn('[API]', '⚠ Websocket closed.');
             this.scheduleRetry();
             this.emit(ApiClient.EVENT_TYPE_DISCONNECTED, null, false);
         });
 
         this.ws.addEventListener('error', (err) => {
-            console.error('[api]', 'Websocket error:', err);
+            console.error('[API]', '⚠ Websocket error:', err);
         });
     }
 
@@ -72,7 +72,7 @@ export default class ApiClient {
             this.retrySecs = 3;
         }
 
-        console.warn('[api]', `Retrying API connection in ${this.retrySecs} secs...`);
+        console.log('[API]', `⌛ Retrying API connection in ${this.retrySecs} secs...`);
 
         if (this.retryTimeout) {
             clearTimeout(this.retryTimeout);
@@ -106,13 +106,13 @@ export default class ApiClient {
             try {
                 callback(this.greedyCache[eventType]);
             } catch (e) {
-                console.error('[api/callback]', `(greedy:${eventType}:${subscriptionId})`, e.message || "Unknown error");
+                console.error('[API/Callback]', `(greedy:${eventType}:${subscriptionId})`, e.message || "Unknown error");
             }
         }
     }
 
     static emit(eventType, data, noCache) {
-        console.log('[api/emit]', eventType);
+        console.debug('[API/Emit]', eventType);
 
         if (!noCache) {
             this.greedyCache[eventType] = data;
@@ -125,7 +125,7 @@ export default class ApiClient {
                 try {
                     sub.fn(data);
                 } catch (e) {
-                    console.error('[api/callback]', `(${sub.type}:${sub.id})`, e.message || "Unknown error");
+                    console.error('[API/Callback]', `(${sub.type}:${sub.id})`, e.message || "Unknown error");
                 }
             }
         });

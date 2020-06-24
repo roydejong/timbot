@@ -1,0 +1,52 @@
+.ServersPage__table {
+  margin-top: 1.5rem;
+
+  table {
+    tbody, thead {
+      tr {
+        td, th {
+          vertical-align: middle;
+        }
+
+        td {
+          padding-top: 5px;
+          padding-bottom: 5px;
+
+          &.actions-col {
+            > .btn {
+              width: 100%;
+              flex-grow: 1;
+            }
+          }
+
+          .owner-indicator {
+            display: flex;
+            align-items: center;
+
+            > img {
+              margin-right: .333rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.ServersTable__no-img {
+  height: 50px;
+  width: 50px;
+  background: #333;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 22px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+table td.ServersTable__col {
+  vertical-align: middle;
+  justify-content: center;
+}
