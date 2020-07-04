@@ -85,6 +85,7 @@ class TwitchMonitor {
             if (nextOnlineList.indexOf(_chanName) === -1) {
                 // Stream was in the list before, but no longer
                 console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
+                this.streamData[_chanName].type = "detected_offline";
                 this.handleChannelOffline(this.streamData[_chanName]);
                 anyChanges = true;
             }

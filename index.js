@@ -617,13 +617,13 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                           embed: msgEmbed
                         }).then((message) => {
                           console.log('[Discord]', `Updated announce msg in #${discordChannel.name} on ${discordChannel.guild.name}`);
-                        });
 
-                        // Clean up entry if no longer live
-                        if (!isLive) {
-                          delete messageHistory[liveMsgDiscrim];
-                          liveMessageDb.put('history', messageHistory);
-                        }
+                          // Clean up entry if no longer live
+                          if (!isLive) {
+                            delete messageHistory[liveMsgDiscrim];
+                            liveMessageDb.put('history', messageHistory);
+                          }
+                        });
                       })
                       .catch(() => {
                         // Message not found, probably deleted, bail
