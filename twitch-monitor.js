@@ -18,8 +18,7 @@ class TwitchMonitor {
         // Configure polling interval
         let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
         if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
-            // Enforce minimum poll interval. We need to avoid hitting any rate limits, but there's no point in updating
-            // > approx. every minute because the Twitch API keeps its data and/or responses cached for a while anyway.
+            // Enforce minimum poll interval to help avoid rate limits
             checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
         }
         setInterval(() => {
@@ -37,20 +36,6 @@ class TwitchMonitor {
     }
 
     static refresh() {
-        // Check buffer: are we waiting?
-        if (this.eventBufferStartTime) {
-            let now = Date.now();
-            let timeSinceMs = now - this.eventBufferStartTime;
-
-            if (timeSinceMs >= TwitchMonitor.EVENT_BUFFER_MS) {
-                // Buffer is done
-                this.eventBufferStartTime = null;
-            } else {
-                // We're in the buffer zone, do nothing
-                return;
-            }
-        }
-
         TwitchApi.fetchStreams(this.channelNames)
           .then((channels) => {
               this.handleStreamList(channels);
@@ -108,13 +93,6 @@ class TwitchMonitor {
         if (!notifyFailed) {
             // Notify OK, update list
             this.activeStreams = nextOnlineList;
-
-            if (anyChanges) {
-                // Twitch has a weird caching problem where channels seem to quickly alternate between on<->off<->on<->off
-                // To avoid spamming, we'll create a buffer time-out whenever this happens
-                // During the buffer time (see EVENT_BUFFER_MS) no Twitch API requests will be made
-                this.eventBufferStartTime = Date.now();
-            }
         } else {
             console.log('[TwitchMonitor]', 'Could not notify channel, will try again next update.');
         }
@@ -159,14 +137,12 @@ class TwitchMonitor {
     }
 }
 
-TwitchMonitor.eventBufferStartTime = 0;
 TwitchMonitor.activeStreams = [];
 TwitchMonitor.streamData = { };
 
 TwitchMonitor.channelLiveCallbacks = [];
 TwitchMonitor.channelOfflineCallbacks = [];
 
-TwitchMonitor.EVENT_BUFFER_MS = 2 * 60 * 1000;
-TwitchMonitor.MIN_POLL_INTERVAL_MS = 1 * 60 * 1000;
+TwitchMonitor.MIN_POLL_INTERVAL_MS = 30000;
 
 module.exports = TwitchMonitor;
