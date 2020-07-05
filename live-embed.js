@@ -11,6 +11,7 @@ class LiveEmbed {
     if (isLive) {
       // Add status
       msgEmbed.setTitle(`:red_circle: **${streamData.user_name} is live on Twitch!**`);
+
       msgEmbed.addField("Stream title", streamData.title, true);
       msgEmbed.addField("Live status", isLive ? `Live for ${streamData.viewer_count} viewers` : 'Stream has now ended', true);
 
@@ -24,6 +25,8 @@ class LiveEmbed {
     } else {
       msgEmbed.setTitle(`:white_circle: ${streamData.user_name} was live on Twitch.`);
       msgEmbed.setDescription('The stream has now ended.');
+
+      msgEmbed.addField("Stream title", streamData.title, true);
     }
 
     return msgEmbed;
