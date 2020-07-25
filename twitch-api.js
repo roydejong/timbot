@@ -44,6 +44,19 @@ class TwitchApi {
         });
     });
   }
+
+  static fetchUsers(channelNames) {
+    return new Promise((resolve, reject) => {
+      axios.get(`/users?login=${channelNames.join('&login=')}`, this.requestOptions)
+        .then((res) => {
+          resolve(res.data.data || []);
+        })
+        .catch((err) => {
+          this.handleApiError(err);
+          reject(err);
+        });
+    });
+  }
 }
 
 module.exports = TwitchApi;

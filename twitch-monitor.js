@@ -1,7 +1,17 @@
 const config = require('./config.json');
 const TwitchApi = require('./twitch-api');
+const MiniDb = require('./minidb');
+const moment = require('moment');
 
 class TwitchMonitor {
+    static __init() {
+        // Initialize user data store
+        this._userDb = new MiniDb("twitch-users");
+        this._lastUserRefresh = this._userDb.get("last-update") || null;
+        this._pendingUserRefresh = false;
+        this._userData = this._userDb.get("user-list") || { };
+    }
+
     static start() {
         // Load channel names from config
         this.channelNames = [];
@@ -36,13 +46,51 @@ class TwitchMonitor {
     }
 
     static refresh() {
-        TwitchApi.fetchStreams(this.channelNames)
-          .then((channels) => {
-              this.handleStreamList(channels);
-          })
-          .catch((err) => {
-              console.warn('[TwitchMonitor]', 'Error in stream refresh:', err);
-          });
+        const now = moment();
+
+        // Refresh all users periodically
+        if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
+            TwitchApi.fetchUsers(this.channelNames)
+              .then((users) => {
+                  this.handleUserList(users);
+              })
+              .catch((err) => {
+                  console.warn('[TwitchMonitor]', 'Error in user refresh:', err);
+              })
+              .then(() => {
+                  if (this._pendingUserRefresh) {
+                      this._pendingUserRefresh = false;
+                      this.refresh();
+                  }
+              })
+        }
+
+        // Refresh all streams
+        if (!this._pendingUserRefresh) {
+            TwitchApi.fetchStreams(this.channelNames)
+              .then((channels) => {
+                  this.handleStreamList(channels);
+              })
+              .catch((err) => {
+                  console.warn('[TwitchMonitor]', 'Error in stream refresh:', err);
+              });
+        }
+    }
+
+    static handleUserList(users) {
+        users.forEach((user) => {
+            const channelName = user.login.toLowerCase();
+
+            let prevUserData = this._userData[channelName] || { };
+            this.userData[channelName] = Object.assign({ }, prevUserData, user);
+
+            console.debug('[TwitchMonitor]', 'Updated channel info:', user.display_name, this.userData[channelName]);
+        });
+
+        this._lastUserRefresh = moment();
+
+        this._userDb.put("last-update", this._lastUserRefresh);
+        this._userDb.put("user-list", this.userData);
     }
 
     static handleStreamList(streams) {
@@ -56,8 +104,10 @@ class TwitchMonitor {
                 nextOnlineList.push(channelName);
             }
 
+            let userDataBase = this._userData[channelName] || { };
             let prevStreamData = this.streamData[channelName] || { };
-            this.streamData[channelName] = Object.assign({ }, prevStreamData, stream);
+
+            this.streamData[channelName] = Object.assign({ }, userDataBase, prevStreamData, stream);
         });
 
         // Find channels that are now online, but were not before
@@ -138,6 +188,8 @@ class TwitchMonitor {
     }
 }
 
+TwitchMonitor.userData = { };
+
 TwitchMonitor.activeStreams = [];
 TwitchMonitor.streamData = { };
 
@@ -147,3 +199,5 @@ TwitchMonitor.channelOfflineCallbacks = [];
 TwitchMonitor.MIN_POLL_INTERVAL_MS = 30000;
 
 module.exports = TwitchMonitor;
+
+TwitchMonitor.__init();

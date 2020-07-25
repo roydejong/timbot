@@ -9,6 +9,7 @@ class LiveEmbed {
     let msgEmbed = new Discord.MessageEmbed();
     msgEmbed.setColor(isLive ? "#9146ff" : "GREY");
     msgEmbed.setURL(`https://twitch.tv/${streamData.user_name.toLowerCase()}`);
+    msgEmbed.setThumbnail(streamData.profile_image_url);
 
     if (isLive) {
       // Add status
