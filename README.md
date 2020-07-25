@@ -3,7 +3,7 @@
 
 🤖 **A simple, customizable Discord bot that announces Twitch streams going live (plus a bunch of silly extras).**
 
-![Timbot](https://user-images.githubusercontent.com/6772638/36305243-09930efe-1313-11e8-98b1-fabf0aacde88.JPG)
+![Timbot](https://user-images.githubusercontent.com/6772638/88468250-ff555500-cee0-11ea-8e02-c71c7656f531.png)
 
 ## Features
 
