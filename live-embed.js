@@ -14,7 +14,7 @@ class LiveEmbed {
       // Add status
       msgEmbed.setTitle(`:red_circle: **${streamData.user_name} is live on Twitch!**`);
 
-      msgEmbed.addField("Title", streamData.title, true);
+      msgEmbed.addField("Title", streamData.title, false);
       msgEmbed.addField("Status", isLive ? `Live with ${streamData.viewer_count} viewers` : 'Stream has ended', true);
 
       // Set thumbnail
@@ -32,7 +32,7 @@ class LiveEmbed {
       msgEmbed.addField("Uptime", humanizeDuration(now - startedAt, {
         delimiter: ", ",
         largest: 2
-      }));
+      }), true);
     } else {
       msgEmbed.setTitle(`:white_circle: ${streamData.user_name} was live on Twitch.`);
       msgEmbed.setDescription('The stream has now ended.');
