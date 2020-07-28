@@ -33,7 +33,8 @@ class LiveEmbed {
       msgEmbed.addField("Uptime", humanizeDuration(now - startedAt, {
         delimiter: ", ",
         largest: 2,
-        round: true
+        round: true,
+        units: ["y", "mo", "w", "d", "h", "m"]
       }), true);
     } else {
       msgEmbed.setTitle(`:white_circle: ${streamData.user_name} was live on Twitch.`);
