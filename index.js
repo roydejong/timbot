@@ -616,8 +616,6 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                         existingMsg.edit(msgFormatted, {
                           embed: msgEmbed
                         }).then((message) => {
-                          console.log('[Discord]', `Updated announce msg in #${discordChannel.name} on ${discordChannel.guild.name}`);
-
                           // Clean up entry if no longer live
                           if (!isLive) {
                             delete messageHistory[liveMsgDiscrim];
@@ -646,15 +644,20 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                         msgToSend = msgFormatted + ` @${mentionMode}`
                     }
 
-                    discordChannel.send(msgToSend, {
+                    let msgOptions = {
                         embed: msgEmbed
-                    })
-                    .then((message) => {
-                        console.log('[Discord]', `Sent announce msg to #${discordChannel.name} on ${discordChannel.guild.name}`)
+                    };
 
-                        messageHistory[liveMsgDiscrim] = message.id;
-                        liveMessageDb.put('history', messageHistory);
-                    });
+                    discordChannel.send(msgToSend, msgOptions)
+                        .then((message) => {
+                            console.log('[Discord]', `Sent announce msg to #${discordChannel.name} on ${discordChannel.guild.name}`)
+
+                            messageHistory[liveMsgDiscrim] = message.id;
+                            liveMessageDb.put('history', messageHistory);
+                        })
+                        .catch((err) => {
+                            console.log('[Discord]', `Could not send announce msg to #${discordChannel.name} on ${discordChannel.guild.name}:`, err.message);
+                        });
 
                     // Voice broadcast, looks like this is a new broadcast
                     if (config.voice_enabled && !didSendVoice) {

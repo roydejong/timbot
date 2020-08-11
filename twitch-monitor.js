@@ -99,14 +99,20 @@ class TwitchMonitor {
     }
 
     static handleUserList(users) {
+        let gotChannelNames = [];
+
         users.forEach((user) => {
             const channelName = user.login.toLowerCase();
 
             let prevUserData = this._userData[channelName] || { };
             this._userData[channelName] = Object.assign({ }, prevUserData, user);
 
-            console.debug('[TwitchMonitor]', 'Updated channel info:', user.display_name);
+            gotChannelNames.push(user.display_name);
         });
+
+        if (gotChannelNames.length) {
+            console.debug('[TwitchMonitor]', 'Updated user info:', gotChannelNames.join(', '));
+        }
 
         this._lastUserRefresh = moment();
 
@@ -115,14 +121,20 @@ class TwitchMonitor {
     }
 
     static handleGameList(games) {
+        let gotGameNames = [];
+
         games.forEach((game) => {
             const gameId = game.id;
 
             let prevGameData = this._gameData[gameId] || { };
             this._gameData[gameId] = Object.assign({ }, prevGameData, game);
 
-            console.debug('[TwitchMonitor]', 'Updated game info:', game.id, '→', game.name);
+            gotGameNames.push(`${game.id} → ${game.name}`);
         });
+
+        if (gotGameNames.length) {
+            console.debug('[TwitchMonitor]', 'Updated game info:', gotGameNames.join(', '));
+        }
 
         this._lastGameRefresh = moment();
 

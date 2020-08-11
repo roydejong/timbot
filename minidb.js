@@ -22,7 +22,7 @@ class MiniDb {
         return JSON.parse(raw) || null;
       }
     } catch (e) {
-      console.log('[MiniDb]', 'Read error:', filePath, e);
+      console.error('[MiniDb]', 'Write error:', filePath, e);
     }
     return null;
   }
@@ -37,9 +37,9 @@ class MiniDb {
         mode: '666',
         flag: 'w'
       });
-      console.log('[MiniDb]', 'Wrote output file:', filePath);
       return true;
     } catch (e) {
+      console.error('[MiniDb]', 'Write error:', filePath, e);
       return false;
     }
   }
