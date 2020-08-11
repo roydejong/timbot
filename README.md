@@ -68,19 +68,34 @@ You can grab the `access_token` from the redirect URL in your browser, and store
  
 To configure Timbot, copy the included `config-sample.json` to `config.json` and enter or customize the values in the file.
 
-    {
-      "discord_bot_token": "<SET_ME>",
-      "discord_announce_channel": "stream-announcements",
-      "discord_fooduse_channel": "",
-      "discord_mentions": {
-        "channel_sample_1": "everyone",
-        "channel_sample_2": "here"
-      },
-      "twitch_client_id": "<SET_ME>",
-      "twitch_oauth_token": "<SET_ME>",
-      "twitch_check_interval_ms": 60000,
-      "twitch_channels": "some,channel,names",
-    }
+```json
+{
+  "twitch_channels": "<SOME_TWITCH_CHANNEL_NAME>,<SOME_TWITCH_CHANNEL_NAME>",
+  "discord_announce_channel": "stream-announcements",
+  "discord_mentions": {
+    "<SOME_TWITCH_CHANNEL_NAME>": "everyone",
+    "<SOME_TWITCH_CHANNEL_NAME>": "here"
+  },
+  "discord_bot_token": "<SET_ME>",
+  "twitch_client_id": "<SET_ME>",
+  "twitch_oauth_token": "<SET_ME>",
+  "twitch_check_interval_ms": 60000,
+  "twitch_use_boxart": true
+}
+```    
+
+Configuration options explained:
+
+|Key|Required?|Description|
+|---|---------|-----------|
+|`twitch_channels`|☑|Comma-separated list of all channels you want to monitor and send live notifications for.|
+|`discord_announce_channel`|☑|Channel name to post stream announcements in. Make sure the bot has permissions to post here.|
+|`discord_mentions`| |This maps channel names to the Discord @ you want to send, such as a role or `everyone`. If a channel is missing here, no @ is used. Note: once the message is updated, the @ is always removed to prevent spamming users with notifications.|
+|`discord_bot_token`|☑|Your bot token, via Discord developer portal.|
+|`twitch_client_id`|☑|Client ID for your Twitch app, via developer portal.|
+|`twitch_oauth_token`|☑|OAuth token that grants access to your Twitch app, via `id.twitch.tv` as explained above.|
+|`twitch_check_interval_ms`| |How often to poll the Twitch API and send or update live embeds.|
+|`twitch_use_boxart`| |If true, use alternate Live Embed style that includes game boxart as a thumbnail image if available.|
 
 ### Starting Timbot
 
