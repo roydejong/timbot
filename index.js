@@ -721,3 +721,22 @@ String.prototype.lowercaseFirstChar = function () {
     let string = this;
     return string.charAt(0).toUpperCase() + string.slice(1);
 };
+
+Array.prototype.hasEqualValues = function (b) {
+    let a = this;
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    a.sort();
+    b.sort();
+
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}

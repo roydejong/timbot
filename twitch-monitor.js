@@ -5,11 +5,16 @@ const moment = require('moment');
 
 class TwitchMonitor {
     static __init() {
-        // Initialize user data store
         this._userDb = new MiniDb("twitch-users");
+        this._gameDb = new MiniDb("twitch-games");
+
         this._lastUserRefresh = this._userDb.get("last-update") || null;
         this._pendingUserRefresh = false;
         this._userData = this._userDb.get("user-list") || { };
+
+        this._pendingGameRefresh = false;
+        this._gameData = this._gameDb.get("game-list") || { };
+        this._watchingGameIds = [];
     }
 
     static start() {
@@ -32,21 +37,22 @@ class TwitchMonitor {
             checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
         }
         setInterval(() => {
-            this.refresh();
-        }, checkIntervalMs);
+            this.refresh("Periodic refresh");
+        }, checkIntervalMs + 1000);
 
         // Immediate refresh after startup (allow voice etc to settle)
         setTimeout(() => {
-            this.refresh();
+            this.refresh("Initial refresh after start-up");
         }, 1000);
 
         // Ready!
-        console.log('[TwitchMonitor]', `Configured stream status polling for channels:`, this.channelNames,
+        console.log('[TwitchMonitor]', `Configured stream status polling for channels:`, this.channelNames.join(', '),
           `(${checkIntervalMs}ms interval)`);
     }
 
-    static refresh() {
+    static refresh(reason) {
         const now = moment();
+        console.log('[Twitch]', ' ▪ ▪ ▪ ▪ ▪ ', `Refreshing now (${reason ? reason : "No reason"})`, ' ▪ ▪ ▪ ▪ ▪ ');
 
         // Refresh all users periodically
         if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
@@ -55,24 +61,39 @@ class TwitchMonitor {
                   this.handleUserList(users);
               })
               .catch((err) => {
-                  console.warn('[TwitchMonitor]', 'Error in user refresh:', err);
+                  console.warn('[TwitchMonitor]', 'Error in users refresh:', err);
               })
               .then(() => {
                   if (this._pendingUserRefresh) {
                       this._pendingUserRefresh = false;
-                      this.refresh();
                   }
               })
         }
 
+        // Refresh all games if needed
+        if (this._pendingGameRefresh) {
+            TwitchApi.fetchGames(this._watchingGameIds)
+              .then((games) => {
+                  this.handleGameList(games);
+              })
+              .catch((err) => {
+                  console.warn('[TwitchMonitor]', 'Error in games refresh:', err);
+              })
+              .then(() => {
+                  if (this._pendingGameRefresh) {
+                      this._pendingGameRefresh = false;
+                  }
+              });
+        }
+
         // Refresh all streams
-        if (!this._pendingUserRefresh) {
+        if (!this._pendingUserRefresh && !this._pendingGameRefresh) {
             TwitchApi.fetchStreams(this.channelNames)
               .then((channels) => {
                   this.handleStreamList(channels);
               })
               .catch((err) => {
-                  console.warn('[TwitchMonitor]', 'Error in stream refresh:', err);
+                  console.warn('[TwitchMonitor]', 'Error in streams refresh:', err);
               });
         }
     }
@@ -82,20 +103,37 @@ class TwitchMonitor {
             const channelName = user.login.toLowerCase();
 
             let prevUserData = this._userData[channelName] || { };
-            this.userData[channelName] = Object.assign({ }, prevUserData, user);
+            this._userData[channelName] = Object.assign({ }, prevUserData, user);
 
-            console.debug('[TwitchMonitor]', 'Updated channel info:', user.display_name, this.userData[channelName]);
+            console.debug('[TwitchMonitor]', 'Updated channel info:', user.display_name);
         });
 
         this._lastUserRefresh = moment();
 
         this._userDb.put("last-update", this._lastUserRefresh);
-        this._userDb.put("user-list", this.userData);
+        this._userDb.put("user-list", this._userData);
+    }
+
+    static handleGameList(games) {
+        games.forEach((game) => {
+            const gameId = game.id;
+
+            let prevGameData = this._gameData[gameId] || { };
+            this._gameData[gameId] = Object.assign({ }, prevGameData, game);
+
+            console.debug('[TwitchMonitor]', 'Updated game info:', game.id, '→', game.name);
+        });
+
+        this._lastGameRefresh = moment();
+
+        this._gameDb.put("last-update", this._lastGameRefresh);
+        this._gameDb.put("game-list", this._gameData);
     }
 
     static handleStreamList(streams) {
         // Index channel data & build list of stream IDs now online
         let nextOnlineList = [];
+        let nextGameIdList = [];
 
         streams.forEach((stream) => {
             const channelName = stream.user_name.toLowerCase();
@@ -108,6 +146,11 @@ class TwitchMonitor {
             let prevStreamData = this.streamData[channelName] || { };
 
             this.streamData[channelName] = Object.assign({ }, userDataBase, prevStreamData, stream);
+            this.streamData[channelName].game = (stream.game_id && this._gameData[stream.game_id]) || null;
+
+            if (stream.game_id) {
+                nextGameIdList.push(stream.game_id);
+            }
         });
 
         // Find channels that are now online, but were not before
@@ -146,6 +189,13 @@ class TwitchMonitor {
             this.activeStreams = nextOnlineList;
         } else {
             console.log('[TwitchMonitor]', 'Could not notify channel, will try again next update.');
+        }
+
+        if (!this._watchingGameIds.hasEqualValues(nextGameIdList)) {
+            // We need to refresh game info
+            this._watchingGameIds = nextGameIdList;
+            this._pendingGameRefresh = true;
+            this.refresh("Need to request game data");
         }
     }
 
@@ -187,8 +237,6 @@ class TwitchMonitor {
         this.channelOfflineCallbacks.push(callback);
     }
 }
-
-TwitchMonitor.userData = { };
 
 TwitchMonitor.activeStreams = [];
 TwitchMonitor.streamData = { };

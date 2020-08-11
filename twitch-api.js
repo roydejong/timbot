@@ -57,6 +57,19 @@ class TwitchApi {
         });
     });
   }
+
+  static fetchGames(gameIds) {
+    return new Promise((resolve, reject) => {
+      axios.get(`/games?id=${gameIds.join('&id=')}`, this.requestOptions)
+        .then((res) => {
+          resolve(res.data.data || []);
+        })
+        .catch((err) => {
+          this.handleApiError(err);
+          reject(err);
+        });
+    });
+  }
 }
 
 module.exports = TwitchApi;

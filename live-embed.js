@@ -12,10 +12,15 @@ class LiveEmbed {
     msgEmbed.setThumbnail(streamData.profile_image_url);
 
     if (isLive) {
-      // Add status
       msgEmbed.setTitle(`:red_circle: **${streamData.user_name} is live on Twitch!**`);
-
       msgEmbed.addField("Title", streamData.title, false);
+
+      // Add game
+      if (streamData.game) {
+        msgEmbed.addField("Game", streamData.game.name, false);
+      }
+
+      // Add status
       msgEmbed.addField("Status", isLive ? `Live with ${streamData.viewer_count} viewers` : 'Stream has ended', true);
 
       // Set thumbnail
