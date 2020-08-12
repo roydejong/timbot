@@ -173,7 +173,9 @@ class Voice {
 
             if (!hasOpenConnection && !channelIsEmpty) {
                 // We need to join, someone is there
-                this.join(voiceChannel, false);
+                if (config.voice_enabled) {
+                    this.join(voiceChannel, false);
+                }
             } else if (hasOpenConnection && voiceChannel.members.size <= 1) {
                 // It's just us :-(
                 console.log('(Voice)', 'Leaving empty channel:', channelId);
