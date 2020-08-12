@@ -623,8 +623,9 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                           }
                         });
                       })
-                      .catch(() => {
+                      .catch((e) => {
                         // Message not found, probably deleted, bail
+                        // This will cause the message to be posted as new in the next update
                         delete messageHistory[liveMsgDiscrim];
                         liveMessageDb.put('history', messageHistory);
                       });
@@ -638,10 +639,33 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                     // Expand the message with a @mention for "here" or "everyone"
                     // We don't do this in updates because it causes some people to get spammed
                     let mentionMode = (config.discord_mentions && config.discord_mentions[streamData.user_name.toLowerCase()]) || null;
+
+                    if (mentionMode) {
+                        mentionMode = mentionMode.toLowerCase();
+
+                        if (mentionMode === "everyone" || mentionMode === "here") {
+                            // Reserved @ keywords for discord that can be mentioned directly as text
+                            mentionMode = `@${mentionMode}`;
+                        } else {
+                            // Most likely a role that needs to be translated to <@&id> format
+                            let roleData = discordChannel.guild.roles.find((role) => {
+                                return (role.name.toLowerCase() === mentionMode);
+                            });
+
+                            if (roleData) {
+                                mentionMode = `<@&${roleData.id}>`;
+                            } else {
+                                console.log('[Discord]', `Cannot mention role: ${mentionMode}`,
+                                  `(does not exist on server ${discordChannel.guild.name})`);
+                                mentionMode = null;
+                            }
+                        }
+                    }
+
                     let msgToSend = msgFormatted;
 
                     if (mentionMode) {
-                        msgToSend = msgFormatted + ` @${mentionMode}`
+                        msgToSend = msgFormatted + ` ${mentionMode}`
                     }
 
                     let msgOptions = {
