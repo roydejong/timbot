@@ -624,10 +624,13 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                         });
                       })
                       .catch((e) => {
-                        // Message not found, probably deleted, bail
-                        // This will cause the message to be posted as new in the next update
-                        delete messageHistory[liveMsgDiscrim];
-                        liveMessageDb.put('history', messageHistory);
+                        // Unable to retrieve message object for editing
+                        if (e.message === "Unknown Message") {
+                            // Specific error: the message does not exist, most likely deleted.
+                            delete messageHistory[liveMsgDiscrim];
+                            liveMessageDb.put('history', messageHistory);
+                            // This will cause the message to be posted as new in the next update if needed.
+                        }
                       });
                 } else {
                     // Sending a new message
