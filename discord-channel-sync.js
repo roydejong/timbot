@@ -5,14 +5,14 @@ class DiscordChannelSync {
     /**
      * @param {Client} client Discord.js client.
      * @param {string} channelName Name of the Discord channel we are looking for on each server (e.g. `config.discord_announce_channel`).
-     * @param {bool} verbose If true, log guild membership info to stdout (debug / info purposes).
+     * @param {boolean} verbose If true, log guild membership info to stdout (debug / info purposes).
      * @return {Channel[]} List of Discord.js channels
      */
     static getChannelList(client, channelName, verbose) {
         let nextTargetChannels = [];
 
-        client.guilds.forEach((guild) => {
-            let targetChannel = guild.channels.find(g => g.name === channelName);
+        client.guilds.cache.forEach((guild) => {
+            let targetChannel = guild.channels.cache.find(g => g.name === channelName);
 
             if (!targetChannel) {
                 if (verbose) {

@@ -7,9 +7,8 @@ const DiscordChannelSync = require("./discord-channel-sync");
 
 class FooduseMonitor {
     static start() {
-        // Self-check
         if (!config.discord_fooduse_channel) {
-            console.info('[Fooduse]', 'Fooduse integration is disabled (no channel configured).');
+            // Fooduse integration is disabled (no channel configured)
             return;
         }
 

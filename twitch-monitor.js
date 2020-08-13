@@ -40,7 +40,7 @@ class TwitchMonitor {
             this.refresh("Periodic refresh");
         }, checkIntervalMs + 1000);
 
-        // Immediate refresh after startup (allow voice etc to settle)
+        // Immediate refresh after startup
         setTimeout(() => {
             this.refresh("Initial refresh after start-up");
         }, 1000);

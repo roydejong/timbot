@@ -8,8 +8,6 @@ const client = new Discord.Client();
 global.discordJsClient = client;
 
 const TwitchMonitor = require("./twitch-monitor");
-const Voice = require("./voice");
-const TwitterMonitor = require("./twitter-monitor");
 const FooduseMonitor = require("./fooduse-monitor");
 const DiscordChannelSync = require("./discord-channel-sync");
 const ElizaHelper = require('./eliza');
@@ -31,32 +29,6 @@ if (config.cleverbot_token) {
     }, true);
 }
 
-// --- Twitter monitor stuff -------------------------------------------------------------------------------------------
-let twitterNames = config.twitter_names;
-let twitterMonitor = null;
-
-if (twitterNames && twitterNames.length > 0) {
-    twitterMonitor = new TwitterMonitor(config.twitter_api_key, config.twitter_api_secret,
-        config.twitter_access_token, config.twitter_access_token_secret, twitterNames);
-
-    twitterMonitor.onNewTweet((tweet) => {
-        for (let i = 0; i < targetChannels.length; i++) {
-            let targetChannel = targetChannels[i];
-
-            if (targetChannel) {
-                try {
-                    let tweetUrl = `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`;
-                    let messageText = `${tweet.user.name} (@${tweet.user.screen_name}) just Tweeted:\r\n${tweetUrl}`;
-
-                    targetChannel.send(messageText);
-                } catch (e) {
-                    console.error('[TwitterAnnounce]', 'Could not post message in Discord:', targetChannel, e);
-                }
-            }
-        }
-    });
-}
-
 // --- Discord ---------------------------------------------------------------------------------------------------------
 console.log('Connecting to Discord...');
 
@@ -69,7 +41,7 @@ let getServerEmoji = (emojiName, asText) => {
     }
 
     try {
-        let emoji = client.emojis.find(e => e.name === emojiName);
+        let emoji = client.emojis.cache.find(e => e.name === emojiName);
 
         if (emoji) {
             emojiCache[emojiName] = emoji;
@@ -93,7 +65,7 @@ let syncServerList = (logMembership) => {
 };
 
 client.on('ready', () => {
-    console.log('[Discord]', `Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
+    console.log('[Discord]', `Bot is ready; logged in as ${client.user.tag}.`);
 
     // Init list of connected servers, and determine which channels we are announcing to
     syncServerList(true);
@@ -106,11 +78,6 @@ client.on('ready', () => {
 
     // Activate Food Use integration
     FooduseMonitor.start();
-
-    if (twitterMonitor) {
-        // Begin Twitter polling
-        twitterMonitor.start();
-    }
 });
 
 client.on("guildCreate", guild => {
@@ -213,13 +180,6 @@ client.on('message', message => {
         return;
     }
 
-    // Auto join voice channels to say hi
-    try {
-        if (message.member && message.member.voiceChannel && config.voice_enabled) {
-            Voice.join(message.member.voiceChannel);
-        }
-    } catch (e) { }
-
     let now = Date.now();
 
     try {
@@ -256,21 +216,6 @@ client.on('message', message => {
                     lastTextReplyAt = now;
                 } catch (e) {
                     console.error('[Chat]', 'Reply error:', e)
-                }
-            }
-
-            if (message.member && message.member.voiceChannel && config.voice_enabled) {
-                let ttsText = "";
-                ttsText += message.member.user.username.spacifyCamels();
-                ttsText += ", ";
-                ttsText += txt;
-
-                if (config.voiced_replies) {
-                    try {
-                        Voice.say(message.member.voiceChannel, ttsText);
-                    } catch (e) {
-                        console.error('[VoiceResponse]', 'Something broke:', e);
-                    }
                 }
             }
 
@@ -320,57 +265,8 @@ client.on('message', message => {
             let isNegative = (txtWords.indexOf("not") >= 0 || txtLower.indexOf("n't") >= 0 ||
                 txtWords.indexOf("bad") >= 0);
 
-            // Youtube play --------------------------------------------------------------------------------------------
-            if (txtPlain.indexOf("youtube.com/") >= 0 || txtPlain.indexOf("youtu.be/") >= 0) {
-                let urls = txtPlain.match(/\bhttps?:\/\/\S+/gi);
-
-                if (urls && urls.length !== 1) {
-                    message.reply("give me one URL, bud. 🤷");
-
-                    if (relationshipPlusEmoji) {
-                        message.react(relationshipPlusEmoji);
-                    }
-                } else if (message.member.voiceChannel) {
-                    Voice.playYoutubeUrl(message.member.voiceChannel, urls[0])
-                        .then(() => {
-                            let danceEmoji = getServerEmoji("feelsdanceman");
-
-                            if (danceEmoji) {
-                                message.react(danceEmoji);
-                            } else {
-                                message.react("🔊");
-                            }
-
-                            message.channel.stopTyping();
-                        })
-                        .catch((err) => {
-                            message.reply("couldn't play that. sorry bud. 🤷");
-                            message.react("❌");
-
-                            console.error('[Playback Error Response]', err);
-                        });
-                } else {
-                    message.reply("you're not even in a voice channel. 🤷");
-
-                    if (relationshipMinusEmoji) {
-                        message.react(relationshipMinusEmoji);
-                    }
-                }
-
-            // Shut up -------------------------------------------------------------------------------------------------
-            } else if (txtNoPunct.indexOf("shut up") >= 0 || txtNoPunct.indexOf("shutup") >= 0) {
-                if (message.member.voiceChannel) {
-                    Voice.shutUp(message.member.voiceChannel);
-                    message.react("🔇");
-                } else {
-                    message.reply("you're not even in a voice channel. 🤷");
-
-                    if (relationshipMinusEmoji) {
-                        message.react(relationshipMinusEmoji);
-                    }
-                }
             // General mention -----------------------------------------------------------------------------------------
-            } else {
+
                 if (cleverbot) {
                     message.channel.startTyping();
 
@@ -397,7 +293,6 @@ client.on('message', message => {
                             message.channel.stopTyping(true);
                         });
                 }
-            }
         }
 
         // Food use integration
@@ -598,7 +493,6 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
 
     // Broadcast to all target channels
     let anySent = false;
-    let didSendVoice = false;
 
     for (let i = 0; i < targetChannels.length; i++) {
         const discordChannel = targetChannels[i];
@@ -651,7 +545,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                             mentionMode = `@${mentionMode}`;
                         } else {
                             // Most likely a role that needs to be translated to <@&id> format
-                            let roleData = discordChannel.guild.roles.find((role) => {
+                            let roleData = discordChannel.guild.roles.cache.find((role) => {
                                 return (role.name.toLowerCase() === mentionMode);
                             });
 
@@ -685,14 +579,6 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                         .catch((err) => {
                             console.log('[Discord]', `Could not send announce msg to #${discordChannel.name} on ${discordChannel.guild.name}:`, err.message);
                         });
-
-                    // Voice broadcast, looks like this is a new broadcast
-                    if (config.voice_enabled && !didSendVoice) {
-                        try {
-                            Voice.sayEverywhere(`Hey. ${streamData.user_name} just went live on Twitch!`);
-                            didSendVoice = true;
-                        } catch (e) { }
-                    }
                 }
 
                 anySent = true;
@@ -704,16 +590,6 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
 
     liveMessageDb.put('history', messageHistory);
     return anySent;
-});
-
-client.on('voiceStateUpdate', (oldMember, newMember) => {
-    if (oldMember && oldMember.voiceChannel) {
-        Voice.handleChannelStateUpdate(oldMember.voiceChannel);
-    }
-
-    if (newMember && newMember.voiceChannel) {
-        Voice.handleChannelStateUpdate(newMember.voiceChannel);
-    }
 });
 
 TwitchMonitor.onChannelOffline((streamData) => {

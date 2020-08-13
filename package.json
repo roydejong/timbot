@@ -9,18 +9,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@appsignal/nodejs": "^0.5.1",
     "axios": "^0.19.2",
     "clevertype": "^2.0.4",
-    "discord.js": "github:discordjs/discord.js#f67d682223a0b0d330ec34738a3dfe51a50f3d8f",
-    "feedparser": "^2.2.9",
-    "ffmpeg-binaries": "^3.2.2-3",
+    "discord.js": "^12.2.0",
+    "feedparser": "^2.2.10",
     "humanize-duration": "^3.23.1",
     "moment": "^2.27.0",
-    "node-opus": "^0.2.7",
-    "say": "^0.14.0",
-    "shelljs": "^0.8.1",
-    "twitter": "^1.7.1",
-    "ytdl-core": "^0.20.2"
+    "request": "^2.88.2"
   }
 }
