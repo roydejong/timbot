@@ -5,7 +5,7 @@ const moment = require('moment');
 
 class TwitchMonitor {
     static __init() {
-        this._userDb = new MiniDb("twitch-users");
+        this._userDb = new MiniDb("twitch-users-v2");
         this._gameDb = new MiniDb("twitch-games");
 
         this._lastUserRefresh = this._userDb.get("last-update") || null;
@@ -56,6 +56,7 @@ class TwitchMonitor {
 
         // Refresh all users periodically
         if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
+            this._pendingUserRefresh = true;
             TwitchApi.fetchUsers(this.channelNames)
               .then((users) => {
                   this.handleUserList(users);
@@ -66,6 +67,7 @@ class TwitchMonitor {
               .then(() => {
                   if (this._pendingUserRefresh) {
                       this._pendingUserRefresh = false;
+                      this.refresh('Got Twitch users, need to get streams');
                   }
               })
         }
@@ -99,19 +101,17 @@ class TwitchMonitor {
     }
 
     static handleUserList(users) {
-        let gotChannelNames = [];
+        let namesSeen = [];
 
         users.forEach((user) => {
-            const channelName = user.login.toLowerCase();
+            let prevUserData = this._userData[user.id] || { };
+            this._userData[user.id] = Object.assign({ }, prevUserData, user);
 
-            let prevUserData = this._userData[channelName] || { };
-            this._userData[channelName] = Object.assign({ }, prevUserData, user);
-
-            gotChannelNames.push(user.display_name);
+            namesSeen.push(user.display_name);
         });
 
-        if (gotChannelNames.length) {
-            console.debug('[TwitchMonitor]', 'Updated user info:', gotChannelNames.join(', '));
+        if (namesSeen.length) {
+            console.debug('[TwitchMonitor]', 'Updated user info:', namesSeen.join(', '));
         }
 
         this._lastUserRefresh = moment();
@@ -154,11 +154,12 @@ class TwitchMonitor {
                 nextOnlineList.push(channelName);
             }
 
-            let userDataBase = this._userData[channelName] || { };
+            let userDataBase = this._userData[stream.user_id] || { };
             let prevStreamData = this.streamData[channelName] || { };
 
             this.streamData[channelName] = Object.assign({ }, userDataBase, prevStreamData, stream);
             this.streamData[channelName].game = (stream.game_id && this._gameData[stream.game_id]) || null;
+            this.streamData[channelName].user = userDataBase;
 
             if (stream.game_id) {
                 nextGameIdList.push(stream.game_id);
