@@ -51,7 +51,7 @@ Follow [this guide](https://github.com/reactiflux/discord-irc/wiki/Creating-a-di
 #### Twitch token
 👉 **I recommend using https://twitchtokengenerator.com/ to create an OAuth token for the API.**
 
-Alternatively, you can to register your own application in the [Twitch Developers Console](https://dev.twitch.tv/console/apps).
+Alternatively, you can register your own application in the [Twitch Developers Console](https://dev.twitch.tv/console/apps).
 
 Please note that your OAuth token is always tied to a specific Client ID.
 
