@@ -26,7 +26,7 @@ This bot is built on Node.js. If you do not yet have Node installed, download an
 
 https://nodejs.org/en/download/
 
-**I recommend Node v10+.**
+**Node.js, version 12 or newer, is required.**
 
 ### Installation
 
