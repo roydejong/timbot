@@ -1,6 +1,7 @@
 /**
  * Helper class for syncing discord target channels.
  */
+const moment = require('moment');
 class DiscordChannelSync {
     /**
      * @param {Client} client Discord.js client.
@@ -16,18 +17,18 @@ class DiscordChannelSync {
 
             if (!targetChannel) {
                 if (verbose) {
-                    console.warn('[Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${channelName} channel!`);
+                    console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', 'Configuration problem /!\\', `Guild ${guild.name} does not have a #${channelName} channel!`);
                 }
             } else {
                 let permissions = targetChannel.permissionsFor(guild.me);
 
                 if (verbose) {
-                    console.log('[Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
+                    console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', ' --> ', `Member of server ${guild.name}, target channel is #${targetChannel.name}`);
                 }
 
                 if (!permissions.has("SEND_MESSAGES")) {
                     if (verbose) {
-                        console.warn('[Discord]', 'Permission problem /!\\', `I do not have SEND_MESSAGES permission on channel #${targetChannel.name} on ${guild.name}: announcement sends will fail.`);
+                        console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', 'Permission problem /!\\', `I do not have SEND_MESSAGES permission on channel #${targetChannel.name} on ${guild.name}: announcement sends will fail.`);
                     }
                 }
 
@@ -36,7 +37,7 @@ class DiscordChannelSync {
         });
 
         if (verbose) {
-            console.log('[Discord]', `Discovered ${nextTargetChannels.length} channels to announce to for ${channelName}.`);
+            console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Discovered ${nextTargetChannels.length} channels to announce to for ${channelName}.`);
         }
 
         return nextTargetChannels;

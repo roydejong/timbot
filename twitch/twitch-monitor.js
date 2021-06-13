@@ -1,5 +1,5 @@
-const config = require('./config.json');
-const TwitchApi = require('./twitch-api');
+const configmain = require('../config/config.json');
+const TwitchApi = require('../twitch-api');
 const MiniDb = require('./minidb');
 const moment = require('moment');
 
@@ -20,18 +20,18 @@ class TwitchMonitor {
     static start() {
         // Load channel names from config
         this.channelNames = [];
-        config.twitch_channels.split(',').forEach((channelName) => {
+        configmain.twitch_channels.split(', ').forEach((channelName) => {
             if (channelName) {
                 this.channelNames.push(channelName.toLowerCase());
             }
         });
         if (!this.channelNames.length) {
-            console.warn('[TwitchMonitor]', 'No channels configured');
+            console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'No channels configured');
             return;
         }
 
         // Configure polling interval
-        let checkIntervalMs = parseInt(config.twitch_check_interval_ms);
+        let checkIntervalMs = parseInt(configmain.twitch_check_interval_ms);
         if (isNaN(checkIntervalMs) || checkIntervalMs < TwitchMonitor.MIN_POLL_INTERVAL_MS) {
             // Enforce minimum poll interval to help avoid rate limits
             checkIntervalMs = TwitchMonitor.MIN_POLL_INTERVAL_MS;
@@ -46,13 +46,13 @@ class TwitchMonitor {
         }, 1000);
 
         // Ready!
-        console.log('[TwitchMonitor]', `Configured stream status polling for channels:`, this.channelNames.join(', '),
+        console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', `Configured stream status polling for channels:`, this.channelNames.join(', '),
           `(${checkIntervalMs}ms interval)`);
     }
 
     static refresh(reason) {
         const now = moment();
-        console.log('[Twitch]', ' ▪ ▪ ▪ ▪ ▪ ', `Refreshing now (${reason ? reason : "No reason"})`, ' ▪ ▪ ▪ ▪ ▪ ');
+        console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Twitch]', ' ▪ ▪ ▪ ▪ ▪ ', `Refreshing now (${reason ? reason : "No reason"})`, ' ▪ ▪ ▪ ▪ ▪ ');
 
         // Refresh all users periodically
         if (this._lastUserRefresh === null || now.diff(moment(this._lastUserRefresh), 'minutes') >= 10) {
@@ -62,7 +62,7 @@ class TwitchMonitor {
                   this.handleUserList(users);
               })
               .catch((err) => {
-                  console.warn('[TwitchMonitor]', 'Error in users refresh:', err);
+                  console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Error in users refresh:', err);
               })
               .then(() => {
                   if (this._pendingUserRefresh) {
@@ -79,7 +79,7 @@ class TwitchMonitor {
                   this.handleGameList(games);
               })
               .catch((err) => {
-                  console.warn('[TwitchMonitor]', 'Error in games refresh:', err);
+                  console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Error in games refresh:', err);
               })
               .then(() => {
                   if (this._pendingGameRefresh) {
@@ -95,7 +95,7 @@ class TwitchMonitor {
                   this.handleStreamList(channels);
               })
               .catch((err) => {
-                  console.warn('[TwitchMonitor]', 'Error in streams refresh:', err);
+                  console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Error in streams refresh:', err);
               });
         }
     }
@@ -111,7 +111,7 @@ class TwitchMonitor {
         });
 
         if (namesSeen.length) {
-            console.debug('[TwitchMonitor]', 'Updated user info:', namesSeen.join(', '));
+            console.debug('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Updated user info:', namesSeen.join(', '));
         }
 
         this._lastUserRefresh = moment();
@@ -133,7 +133,7 @@ class TwitchMonitor {
         });
 
         if (gotGameNames.length) {
-            console.debug('[TwitchMonitor]', 'Updated game info:', gotGameNames.join(', '));
+            console.debug('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Updated game info:', gotGameNames.join(', '));
         }
 
         this._lastGameRefresh = moment();
@@ -175,7 +175,7 @@ class TwitchMonitor {
 
             if (this.activeStreams.indexOf(_chanName) === -1) {
                 // Stream was not in the list before
-                console.log('[TwitchMonitor]', 'Stream channel has gone online:', _chanName);
+                console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Stream channel has gone online:', _chanName);
                 anyChanges = true;
             }
 
@@ -190,7 +190,7 @@ class TwitchMonitor {
 
             if (nextOnlineList.indexOf(_chanName) === -1) {
                 // Stream was in the list before, but no longer
-                console.log('[TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
+                console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Stream channel has gone offline:', _chanName);
                 this.streamData[_chanName].type = "detected_offline";
                 this.handleChannelOffline(this.streamData[_chanName]);
                 anyChanges = true;
@@ -201,7 +201,7 @@ class TwitchMonitor {
             // Notify OK, update list
             this.activeStreams = nextOnlineList;
         } else {
-            console.log('[TwitchMonitor]', 'Could not notify channel, will try again next update.');
+            console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][TwitchMonitor]', 'Could not notify channel, will try again next update.');
         }
 
         if (!this._watchingGameIds.hasEqualValues(nextGameIdList)) {

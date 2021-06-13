@@ -1,12 +1,12 @@
 const Discord = require('discord.js');
 const moment = require('moment');
 const humanizeDuration = require("humanize-duration");
-const config = require('./config.json');
+const configmain = require('../config/config.json');
 
 class LiveEmbed {
   static createForStream(streamData) {
     const isLive = streamData.type === "live";
-    const allowBoxArt = config.twitch_use_boxart;
+    const allowBoxArt = configmain.twitch_use_boxart;
 
     let msgEmbed = new Discord.MessageEmbed();
     msgEmbed.setColor(isLive ? "#9146ff" : "GREY");

@@ -1,13 +1,14 @@
 const MiniDb = require('./minidb');
 const FeedParser = require('feedparser');
 const request = require('request');
-const config = require('./config');
+const moment = require('moment');
+const configmain = require('../config/config.json');
 
 const DiscordChannelSync = require("./discord-channel-sync");
 
 class FooduseMonitor {
     static start() {
-        if (!config.discord_fooduse_channel) {
+        if (!configmain.discord_fooduse_channel) {
             // Fooduse integration is disabled (no channel configured)
             return;
         }
@@ -38,7 +39,7 @@ class FooduseMonitor {
         let fp = new FeedParser();
 
         fpReq.on('error', (err) => {
-            console.error('[Fooduse]', 'Could not check Youtube feed (request error).', err);
+            console.error('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Fooduse]', 'Could not check Youtube feed (request error).', err);
         });
 
         fpReq.on('response', function (res) {
@@ -50,7 +51,7 @@ class FooduseMonitor {
         });
 
         fp.on('error', (err) => {
-            console.error('[Fooduse]', 'Could not check Youtube feed (parser error).', err);
+            console.error('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Fooduse]', 'Could not check Youtube feed (parser error).', err);
         });
 
         let highestDate = null;
@@ -86,7 +87,7 @@ class FooduseMonitor {
             return;
         }
 
-        console.debug('[Fooduse]', `Found new video to announce: ${rssItem.title} [${rssItem.guid}]`);
+        console.debug('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Fooduse]', `Found new video to announce: ${rssItem.title} [${rssItem.guid}]`);
 
         this.db.put("fooduse", { lastAnnouncedVideoGuid: thisGuid });
         this.lastAnnouncedVideoGuid = thisGuid;
@@ -107,7 +108,7 @@ class FooduseMonitor {
                 try {
                     targetChannel.send(formattedMessage);
                 } catch (err) {
-                    console.error('[Fooduse]', 'Announce error:', err);
+                    console.error('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Fooduse]', 'Announce error:', err);
                 }
             }
         }

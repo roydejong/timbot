@@ -1,6 +1,5 @@
-{
   "name": "timbot",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Discord Tim Bot",
   "main": "index.js",
   "scripts": {
@@ -9,12 +8,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "clevertype": "^2.0.4",
-    "discord.js": "^12.2.0",
+    "discord.js": "^12.5.3",
     "feedparser": "^2.2.10",
-    "humanize-duration": "^3.23.1",
-    "moment": "^2.27.0",
+    "humanize-duration": "^3.27.0",
+    "mathjs": "^9.4.2",
+    "moment": "^2.29.1",
     "request": "^2.88.2"
   }
 }
