@@ -51,6 +51,12 @@ Follow [this guide](https://github.com/reactiflux/discord-irc/wiki/Creating-a-di
 #### Twitch token
 👉 **I recommend using https://twitchtokengenerator.com/ to create an OAuth token for the API.**
 
+You can also begin the authorization flow by completing the authorization prompt yourself:
+ 
+```
+https://id.twitch.tv/oauth2/authorize?client_id=<YOUR_CLIENT_ID_HERE>&response_type=token&redirect_uri=http://localhost
+```
+
 Alternatively, you can register your own application in the [Twitch Developers Console](https://dev.twitch.tv/console/apps).
 
 Please note that your OAuth token is always tied to a specific Client ID.
@@ -61,17 +67,23 @@ To configure Timbot, copy the included `config-sample.json` to `config.json` and
 
 ```json
 {
-  "twitch_channels": "<SOME_TWITCH_CHANNEL_NAME>,<SOME_TWITCH_CHANNEL_NAME>",
+  "prefix":"!",
+  "twitch_channels": "<USER_1>, <USER 2>",
   "discord_announce_channel": "stream-announcements",
   "discord_mentions": {
-    "<SOME_TWITCH_CHANNEL_NAME>": "everyone",
-    "<SOME_TWITCH_CHANNEL_NAME>": "here"
+    "<USER_1>": "everyone",
+    "<USER_2>": "here"
   },
   "discord_bot_token": "<SET_ME>",
-  "twitch_client_id": "<SET_ME>",
-  "twitch_oauth_token": "<SET_ME>",
   "twitch_check_interval_ms": 60000,
-  "twitch_use_boxart": true
+  "twitch_use_boxart": true,
+  "oauth2": {
+    "twitch_client_id": "<SET_ME>",
+    "twitch_client_secret": "<SET_ME>",
+    "twitch_oauth_token": "<SET_ME>",
+    "twitch_oauth_cooldown": "06/15/2021-06:05:15-am"
+  },
+  "cleverbot_token": ""
 }
 ```    
 
@@ -84,6 +96,7 @@ Configuration options explained:
 |`discord_mentions`| |This maps channel names to the Discord @ you want to send, such as a role or `everyone`. If a channel is missing here, no @ is used. Note: once the message is updated, the @ is always removed to prevent spamming users with notifications.|
 |`discord_bot_token`|☑|Your bot token, via Discord developer portal.|
 |`twitch_client_id`|☑|Client ID for your Twitch app, via developer portal.|
+|`twitch_client_secret`|☑|Client Secret for your Twitch app, via developer portal.|
 |`twitch_oauth_token`|☑|OAuth token that grants access to your Twitch app, via `id.twitch.tv` as explained above.|
 |`twitch_check_interval_ms`| |How often to poll the Twitch API and send or update live embeds.|
 |`twitch_use_boxart`| |If true, use alternate Live Embed style that includes game boxart as a thumbnail image if available.|
