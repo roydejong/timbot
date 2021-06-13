@@ -1,28 +1,42 @@
-const config = require('./config.json');
+const configmain = require('./config/config.json');
 
 const axios = require('axios');
+const moment = require('moment');
 const Cleverbot = require('clevertype').Cleverbot;
 
 const Discord = require('discord.js');
-const client = new Discord.Client();
+const client = new Discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION" ]});
 global.discordJsClient = client;
 
-const TwitchMonitor = require("./twitch-monitor");
-const FooduseMonitor = require("./fooduse-monitor");
-const DiscordChannelSync = require("./discord-channel-sync");
-const ElizaHelper = require('./eliza');
-const LiveEmbed = require('./live-embed');
-const MiniDb = require('./minidb');
+const TwitchMonitor = require("./twitch/twitch-monitor");
+const FooduseMonitor = require("./twitch/fooduse-monitor");
+const DiscordChannelSync = require("./twitch/discord-channel-sync");
+const ElizaHelper = require('./twitch/eliza');
+const LiveEmbed = require('./twitch/live-embed');
+const MiniDb = require('./twitch/minidb');
 
 // --- Startup ---------------------------------------------------------------------------------------------------------
-console.log('Timbot is starting.');
+console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '] Timbot is starting.');
+
+//Command Event Database handler
+client.commands = new Discord.Collection();
+client.events = new Discord.Collection();
+['command_handler', 'event_handler'].forEach(handler =>{
+    require(`./handlers/${handler}`)(client, Discord);
+})
+client.reaction = new Discord.Collection();
+['words'].forEach(wordreaction =>{
+    require(`./react/${wordreaction}.js`)(client, Discord);
+})
+client.twitchrequest = new Discord.Collection();
+require(`./utils/twitchRequest/twitchrequest.js`)(client, Discord);
 
 // --- Cleverbot init --------------------------------------------------------------------------------------------------
 let cleverbot = null;
 
-if (config.cleverbot_token) {
+if (configmain.cleverbot_token) {
     cleverbot = new Cleverbot({
-        apiKey: config.cleverbot_token,
+        apiKey: configmain.cleverbot_token,
         emotion: 0,
         engagement: 0,
         regard: 100
@@ -30,7 +44,7 @@ if (config.cleverbot_token) {
 }
 
 // --- Discord ---------------------------------------------------------------------------------------------------------
-console.log('Connecting to Discord...');
+console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '] Connecting to Discord...');
 
 let targetChannels = [];
 let emojiCache = { };
@@ -61,11 +75,11 @@ let getServerEmoji = (emojiName, asText) => {
 global.getServerEmoji = getServerEmoji;
 
 let syncServerList = (logMembership) => {
-    targetChannels = DiscordChannelSync.getChannelList(client, config.discord_announce_channel, logMembership);
+    targetChannels = DiscordChannelSync.getChannelList(client, configmain.discord_announce_channel, logMembership);
 };
 
 client.on('ready', () => {
-    console.log('[Discord]', `Bot is ready; logged in as ${client.user.tag}.`);
+    console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Bot is ready; logged in as ${client.user.tag}.`);
 
     // Init list of connected servers, and determine which channels we are announcing to
     syncServerList(true);
@@ -81,327 +95,19 @@ client.on('ready', () => {
 });
 
 client.on("guildCreate", guild => {
-    console.log(`[Discord]`, `Joined new server: ${guild.name}`);
+    console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Joined new server: ${guild.name}`);
 
     syncServerList(false);
 });
 
 client.on("guildDelete", guild => {
-    console.log(`[Discord]`, `Removed from a server: ${guild.name}`);
+    console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Removed from a server: ${guild.name}`);
 
     syncServerList(false);
 });
 
-let selloutList = [];
-
-axios.get("https://twitch.center/customapi/quote/list?token=a912f99b")
-.then((res) => {
-    let data = res.data;
-    let lines = data.split("\n");
-
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-        selloutList.push(line);
-    }
-
-    console.log('[Sellout]', `Sellout list initialized from remote, ${selloutList.length} items`);
-});
-
-let selloutCheckTs = 0;
-let selloutTimeout = null;
-
-let doSelloutMessage = (channel) => {
-    if (!selloutList.length) {
-        return;
-    }
-
-    let randomLine = selloutList[Math.floor(Math.random()*selloutList.length)];
-
-    if (!randomLine) {
-        return;
-    }
-
-    let messageText = "Oh. I guess nightbot is out drinking again. I got this. ";
-    messageText += "How many quality Amazon™ products are there? At least ";
-    messageText += randomLine;
-
-    try {
-        channel.send(messageText);
-        channel.stopTyping(true);
-    } catch (e) {
-        console.error('[Sellout] ERR:', e.toString());
-    }
-};
-
-let lastTextReplyAt = 0;
-
-client.on('message', message => {
-    if (!message.content) {
-        // Empty message
-        return;
-    }
-
-    let txtPlain = message.content.toString().trim();
-    let txtLower = txtPlain.toLowerCase();
-
-    if (!txtLower.length) {
-        // Whitespace or blank message
-        return;
-    }
-
-    let txtNoPunct = txtLower;
-    txtNoPunct = txtNoPunct.replaceAll(",", " ");
-    txtNoPunct = txtNoPunct.replaceAll(".", " ");
-    txtNoPunct = txtNoPunct.replaceAll("?", " ");
-    txtNoPunct = txtNoPunct.replaceAll("!", " ");
-    txtNoPunct = txtNoPunct.replaceAll("'", "");
-    txtNoPunct = txtNoPunct.replaceAll(`"`, "");
-    txtNoPunct = txtNoPunct.replaceAll("  ", " ");
-    txtNoPunct = txtNoPunct.trim();
-
-    if (txtLower === "!sellout" || txtLower.indexOf("amazon.com") >= 0 || txtLower.indexOf("amzn.to") >= 0) {
-        // An amazon link was posted, or a new !sellout was called
-        // (either way we bail - we don't want duplicates or spam)
-        if (selloutTimeout) {
-            clearTimeout(selloutTimeout);
-            selloutTimeout = null;
-
-            try {
-                message.channel.stopTyping(true);
-            } catch (e) { }
-        }
-
-        // We need to make sure we're listening for bots posting links too, obviously, so this code lives pre-botcheck
-    }
-
-    if (message.author.bot) {
-        // Bot message
-        // As a courtesy, we ignore all messages from bots (and, therefore, ourselves) to avoid any looping or spamming
-        return;
-    }
-
-    let now = Date.now();
-
-    try {
-        // Determine individual words that were part of this message
-        let txtWords = txtNoPunct.split(' ');
-
-        // Determine the names of any users mentioned
-        let mentionedUsernames = [];
-
-        message.mentions.users.forEach((user) => {
-            mentionedUsernames.push(user.username);
-        });
-
-        // Determine whether *we* were mentioned
-        let timbotWasMentioned = (txtWords.indexOf("timbot") >= 0 || mentionedUsernames.indexOf("Timbot") >= 0);
-        let elizaWasMentioned = (txtWords.indexOf("eliza") >= 0);
-        let elizaWasOn = ElizaHelper.isActiveForUser(message.author);
-        let elizaModeOn = (elizaWasMentioned || elizaWasOn);
-
-        // Anti spam timer
-        let lastTextReply = lastTextReplyAt || 0;
-        let minutesSinceLastTextReply = Math.floor(((Date.now() - lastTextReply) / 1000) / 60);
-        let okayToTextReply = (minutesSinceLastTextReply >= 1);
-
-        let fnTextReply = function (txt, force, asNormal) {
-            if (okayToTextReply || force) {
-                try {
-                    if (asNormal) {
-                        message.channel.send(txt);
-                    } else {
-                        message.reply(txt);
-                    }
-
-                    lastTextReplyAt = now;
-                } catch (e) {
-                    console.error('[Chat]', 'Reply error:', e)
-                }
-            }
-
-            try {
-                message.channel.stopTyping();
-            } catch (e) { }
-
-            return true;
-        };
-
-        // Nightbot / !sellout helper
-        if (txtLower === "!sellout" || (timbotWasMentioned && txtLower.indexOf("!sellout") >= 0)) {
-            // Do a new sellout (either the "!sellout" command was used or someone mentioned "timbot" and "!sellout" together)
-            message.channel.startTyping();
-
-            selloutTimeout = setTimeout(() => {
-                doSelloutMessage(message.channel);
-            }, 3500);
-
-            return;
-        }
-
-        let relationshipPlusEmoji = getServerEmoji("timPlus", false);
-        let relationshipMinusEmoji = getServerEmoji("timMinus", false);
-
-        // Timbot mentions
-        if (timbotWasMentioned || elizaWasMentioned) {
-            // --- Eliza start ---
-            if (elizaModeOn) {
-                let isEnding = txtNoPunct.indexOf("goodbye") >= 0 || txtNoPunct.indexOf("good bye") >= 0;
-                let isStarting = !isEnding && !elizaWasOn;
-
-                message.channel.startTyping();
-
-                if (isEnding) {
-                    ElizaHelper.end(message);
-                } else if (isStarting) {
-                    ElizaHelper.start(message);
-                } else {
-                    ElizaHelper.reply(message);
-                }
-
-                return;
-            }
-            // --- Eliza eof ---
-
-            let isNegative = (txtWords.indexOf("not") >= 0 || txtLower.indexOf("n't") >= 0 ||
-                txtWords.indexOf("bad") >= 0);
-
-            // General mention -----------------------------------------------------------------------------------------
-
-                if (cleverbot) {
-                    message.channel.startTyping();
-
-                    let cleverInput = message.cleanContent;
-                    console.log(cleverInput, message.member.user.discriminator);
-
-                    cleverbot.say(cleverInput, message.member.user.discriminator)
-                        .then((cleverOutput) => {
-                            console.log(cleverOutput);
-                            if (cleverOutput && cleverOutput.length) {
-                                cleverOutput = cleverOutput.replaceAll("cleverbot", "Timbot");
-
-                                fnTextReply(cleverOutput, true, true);
-                            } else {
-                                // No or blank response from CB
-                                message.react("🤷");
-                                message.channel.stopTyping(true);
-                            }
-                        })
-                        .catch((err) => {
-                            // Err, no CB response
-                            console.log(err);
-                            message.react("❌");
-                            message.channel.stopTyping(true);
-                        });
-                }
-        }
-
-        // Food use integration
-        if (txtLower.indexOf("food use") >= 0 || txtLower.indexOf("food dip") >= 0 ||
-            txtLower.indexOf("fooddip") >= 0 || txtLower.indexOf("fooduse") >= 0) {
-            let bobmoji = getServerEmoji("BOB_EATS");
-
-            if (bobmoji) {
-                message.react(bobmoji);
-            }
-        }
-
-        // Easter egg: meme
-        if (txtLower.indexOf("loss") >= 0) {
-            let lossEmoji = getServerEmoji("THINK_ABOUT_LOSS");
-
-            if (lossEmoji) {
-                message.react(lossEmoji);
-            }
-        }
-
-        if (txtLower.indexOf("meme") >= 0) {
-            if (relationshipMinusEmoji) {
-                message.react(relationshipMinusEmoji);
-            }
-        }
-
-        // Easter egg: timOh reaction
-        if (txtNoPunct === "oh" || txtLower.startsWith("oh.")) {
-            let ohEmoji = getServerEmoji("timOh", false);
-
-            if (ohEmoji) {
-                message.react(ohEmoji);
-            }
-        }
-
-        // Gay
-        let gayWords = ["gay", "queer", "homo", "pride"];
-
-        for (let i = 0; i < gayWords.length; i++) {
-            let _gayWord = gayWords[i];
-
-            if (txtLower.indexOf(_gayWord) >= 0) {
-                message.react("🏳️‍🌈");
-            }
-        }
-
-        // Easter egg: timGuest420 reaction
-        if (txtWords.indexOf("grass") >= 0 || txtLower.indexOf("420") >= 0
-            || txtWords.indexOf("kush") >= 0 || txtWords.indexOf("weed") >= 0
-            || txtLower.indexOf("aunt mary") >= 0 || txtWords.indexOf("ganja") >= 0
-            || txtWords.indexOf("herb") >= 0 || txtWords.indexOf("joint") >= 0
-            || txtWords.indexOf("juja") >= 0 || txtLower.indexOf("mary jane") >= 0
-            || txtWords.indexOf("reefer") >= 0 || txtWords.indexOf("doobie") >= 0
-            || txtWords.indexOf("cannabis") >= 0 || txtLower.indexOf("magic brownie") >= 0
-            || txtWords.indexOf("bong") >= 0 || txtNoPunct.indexOf("devils lettuce") >= 0
-            || txtLower.indexOf("marijuana") >= 0 || txtLower.indexOf("dime bag") >= 0
-            || txtWords.indexOf("dimebag") >= 0 || txtWords.indexOf("toke") >= 0
-            || txtWords.indexOf("blaze") >= 0 || txtWords.indexOf("blunt") >= 0
-        ) {
-            let fourtwentyEmoji = getServerEmoji("timGuest420", false);
-
-            if (fourtwentyEmoji) {
-                message.react(fourtwentyEmoji);
-            }
-        }
-
-        // 4head
-        if (txtWords.indexOf('4head') >= 0) {
-            let fourheadEmoji = getServerEmoji("4head", false);
-
-            if (fourheadEmoji) {
-                message.react(fourheadEmoji);
-            }
-        }
-
-        // hahaa
-        if (txtWords.indexOf('hahaa') >= 0) {
-            let hahaaEmoji = getServerEmoji("hahaa", false);
-
-            if (hahaaEmoji) {
-                message.react(hahaaEmoji);
-            }
-        }
-
-        // beat saber
-        if (txtWords.indexOf('beatsaber') >= 0 || txtLower.indexOf('beat saber') >= 0) {
-            let beatsaberEmoji = getServerEmoji("beatsaber", false);
-
-            if (beatsaberEmoji) {
-                message.react(beatsaberEmoji);
-            }
-        }
-
-        // clap
-        if (txtWords.indexOf('clap') >= 0) {
-            let clapEmoji = getServerEmoji("ClapClap", false);
-
-            if (clapEmoji) {
-                message.react(clapEmoji);
-            }
-        }
-    } catch (e) {
-        console.error('Message processing / dumb joke error:', e, `<<< ${e.toString()} >>>`);
-    }
-});
-
-console.log('[Discord]', 'Logging in...');
-client.login(config.discord_bot_token);
+console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', 'Logging in...');
+client.login(configmain.discord_bot_token);
 
 // Activity updater
 class StreamActivity {
@@ -449,9 +155,9 @@ class StreamActivity {
                 "type": "STREAMING"
             });
 
-            console.log('[StreamActivity]', `Update current activity: watching ${streamInfo.user_name}.`);
+            console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][StreamActivity]', `Update current activity: watching ${streamInfo.user_name}.`);
         } else {
-            console.log('[StreamActivity]', 'Cleared current activity.');
+            console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][StreamActivity]', 'Cleared current activity.');
 
             this.discordClient.user.setActivity(null);
         }
@@ -552,7 +258,7 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
                             if (roleData) {
                                 mentionMode = `<@&${roleData.id}>`;
                             } else {
-                                console.log('[Discord]', `Cannot mention role: ${mentionMode}`,
+                                console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Cannot mention role: ${mentionMode}`,
                                   `(does not exist on server ${discordChannel.guild.name})`);
                                 mentionMode = null;
                             }
@@ -571,19 +277,19 @@ TwitchMonitor.onChannelLiveUpdate((streamData) => {
 
                     discordChannel.send(msgToSend, msgOptions)
                         .then((message) => {
-                            console.log('[Discord]', `Sent announce msg to #${discordChannel.name} on ${discordChannel.guild.name}`)
+                            console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Sent announce msg to #${discordChannel.name} on ${discordChannel.guild.name}`)
 
                             messageHistory[liveMsgDiscrim] = message.id;
                             liveMessageDb.put('history', messageHistory);
                         })
                         .catch((err) => {
-                            console.log('[Discord]', `Could not send announce msg to #${discordChannel.name} on ${discordChannel.guild.name}:`, err.message);
+                            console.log('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', `Could not send announce msg to #${discordChannel.name} on ${discordChannel.guild.name}:`, err.message);
                         });
                 }
 
                 anySent = true;
             } catch (e) {
-                console.warn('[Discord]', 'Message send problem:', e);
+                console.warn('[' + moment.utc().format('MM/DD/YYYY-h:mm:ss-A') + '][Discord]', 'Message send problem:', e);
             }
         }
     }
