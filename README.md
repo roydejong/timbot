@@ -64,16 +64,10 @@ Please note that your OAuth token is always tied to a specific Client ID.
 ### Configuration
  
 To configure Timbot, copy the included `config-sample.json` to `config.json` and enter or customize the values in the file.
+More to this in the wiki
 
 ```json
 {
-  "prefix":"!",
-  "twitch_channels": "<USER_1>, <USER 2>",
-  "discord_announce_channel": "stream-announcements",
-  "discord_mentions": {
-    "<USER_1>": "everyone",
-    "<USER_2>": "here"
-  },
   "discord_bot_token": "<SET_ME>",
   "twitch_check_interval_ms": 60000,
   "twitch_use_boxart": true,
@@ -91,9 +85,6 @@ Configuration options explained:
 
 |Key|Required?|Description|
 |---|---------|-----------|
-|`twitch_channels`|☑|Comma-separated list of all channels you want to monitor and send live notifications for.|
-|`discord_announce_channel`|☑|Channel name to post stream announcements in. Make sure the bot has permissions to post here.|
-|`discord_mentions`| |This maps channel names to the Discord @ you want to send, such as a role or `everyone`. If a channel is missing here, no @ is used. Note: once the message is updated, the @ is always removed to prevent spamming users with notifications.|
 |`discord_bot_token`|☑|Your bot token, via Discord developer portal.|
 |`twitch_client_id`|☑|Client ID for your Twitch app, via developer portal.|
 |`twitch_client_secret`|☑|Client Secret for your Twitch app, via developer portal.|
