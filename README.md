@@ -26,7 +26,7 @@ This bot is built on Node.js. If you do not yet have Node installed, download an
 
 https://nodejs.org/en/download/
 
-**Node.js, version 12 or newer, is required.**
+**Node.js, version 16.6.0 or newer, is required.**
 
 ### Installation
 
@@ -44,7 +44,7 @@ Once installed, enter the directory and install the dependencies:
 Note that you will need to set up some external applications: 
 
 #### Discord bot application
-Your Discord bot needs to be registered as an application, and you will need a bot token  (`discord_bot_token` in Timbot config).
+Your Discord bot needs to be registered as an application, and you will need a bot token  (`TOKEN` in Timbot .env).
 
 Follow [this guide](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token) for more information.
 
@@ -63,12 +63,10 @@ Please note that your OAuth token is always tied to a specific Client ID.
 
 ### Configuration
  
-To configure Timbot, copy the included `config-sample.json` to `config.json` and enter or customize the values in the file.
-More to this in the wiki
+To configure Timbot, customize the included `config.json` and enter.
 
 ```json
 {
-  "discord_bot_token": "<SET_ME>",
   "twitch_check_interval_ms": 60000,
   "twitch_use_boxart": true,
   "oauth2": {
@@ -79,13 +77,32 @@ More to this in the wiki
   },
   "cleverbot_token": ""
 }
-```    
+```
+```.env
+TOKEN = <SET_ME>
+PREFIX = !
+
+//-Twitch
+DISCORD_ANNOUNCE_CHANNEL = <SET_ME>
+TWITCH_CLIENT_ID = <SET_ME>
+TWITCH_CLIENT_SECRET = <SET_ME>
+TWITCH_OAUTH_TOKEN = <SET_ME>
+```
 
 Configuration options explained:
 
+.json
 |Key|Required?|Description|
 |---|---------|-----------|
-|`discord_bot_token`|☑|Your bot token, via Discord developer portal.|
+|`twitch_client_id`|☑|Client ID for your Twitch app, via developer portal.|
+|`twitch_client_secret`|☑|Client Secret for your Twitch app, via developer portal.|
+|`twitch_oauth_token`|☑|OAuth token that grants access to your Twitch app, via `id.twitch.tv` as explained above.|
+|`twitch_check_interval_ms`| |How often to poll the Twitch API and send or update live embeds.|
+|`twitch_use_boxart`| |If true, use alternate Live Embed style that includes game boxart as a thumbnail image if available.|
+
+.env
+|Key|Required?|Description|
+|---|---------|-----------|
 |`twitch_client_id`|☑|Client ID for your Twitch app, via developer portal.|
 |`twitch_client_secret`|☑|Client Secret for your Twitch app, via developer portal.|
 |`twitch_oauth_token`|☑|OAuth token that grants access to your Twitch app, via `id.twitch.tv` as explained above.|
