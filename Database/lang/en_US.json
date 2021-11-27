@@ -1,0 +1,257 @@
+{
+    "admin":{
+        "clear":{
+            "log":"admin command 'clear' executed",
+            "errorperms":"admin command 'clear' failed. Missing permissions!",
+            "errorchannel":"admin command 'clear' failed. Wrong Channel!",
+            "numbermiss":"enter the amount you want to clear.",
+            "numberreal":"enter a real number!",
+            "notmore":"Not more then 100!",
+            "notless":"Not less then 1!"
+        },
+        "changelog":{
+            "log":"admin command 'changelog' executed",
+            "title":"Tim's Changelog from:",
+            "errorperms":"admin command 'changelog' failed. Missing permissions!",
+            "errorchannel":"admin command 'changelog' failed. Wrong Channel!"
+        },
+        "help":{
+            "log":"admin command 'adminhelp' executed.",
+            "error":"admin command 'adminhelp' failed. Missing permissions!",
+            "errorchannel":"admin command 'adminhelp' failed. Wrong Channel!",
+            "title":"All Admin Commands",
+            "text1":"**ahelp** - Admin Help text output.",
+            "text2":"**ping** - Ping command.",
+            "text3":"**restart** - Restart's the bot.",
+            "text4":"**shutdown** - Shut's the bot down.",
+            "text5":"**reload** - Reloads the commands.",
+            "text6":"**config** - Change settings in the config.",
+            "text7":"**lang** - Change the language.",
+            "text8":"**changelog** - Changelog of the Bot.",
+            "text9":"**clear** - Clears up to 100 messages from the past 14 days.",
+            "text10":"**botinfo** - Infos to the Bot.",
+            "text11":"**.** - .",
+            "text12":"**.** - .",
+            "text13":"**.** - .",
+            "text14":"**.** - .",
+            "text15":"**.** - .",
+            "text16":"**.** - .",
+            "text17":"**.** - .",
+            "text18":"**.** - .",
+            "text19":"**.** - .",
+            "text20":"**.** - .",
+            "text21":"**.** - .",
+            "text22":"**.** - .",
+            "text23":"**.** - ."
+        },
+        "config": {
+            "noargs1":"What do you want? You can't just edit thin air. \nGo on, let's start with ",
+            "noargs2":" shall we?",
+            "errorperms":"admin command 'config' failed. Missing permissions!",
+            "errorchannel":"admin command 'config' failed. Wrong Channel!",
+            "list":"Commands and list of Arguments: https://github.com/TamaniWolf/TimBot/wiki/Config",
+            "seton":" set to ON",
+            "setoff":" set to OFF"
+        },
+        "lang": {
+            "errorperms":"admin command 'lang' failed. Missing permissions!",
+            "errorchannel":"admin command 'lang' failed. Wrong Channel!",
+            "noargs1":"What do you want? You can't just edit thin air. \nGo on, let's start with ",
+            "noargs2":" shall we?",
+            "list":"Commands and list of Arguments: https://github.com/TamaniWolf/TimBot/wiki/Languages",
+            "default":"Language set to Default (English)",
+            "en":"Language set to English",
+            "de":"Language set to German"
+        },
+        "tim": {
+            "os":"Now running TimOS"
+        },
+        "botinfo":{
+            "text":"",
+            "errorperms":"admin command 'botinfo' failed. Missing permissions!",
+            "errorchannel":"admin command 'botinfo' failed. Wrong Channel!",
+            "logs":"admin command 'botinfo' executed"
+        },
+        "mute":{
+            "log":"admin command 'mute' executed",
+            "errorperms":"admin command 'mute' failed. Missing permissions!",
+            "errorchannel":"admin command 'mute' failed. Wrong Channel!",
+            "?1":"",
+            "?2":""
+        },
+        "ping":{
+            "text":"Fuck off! I'm busy! -.-*",
+            "errorperms":"admin command 'ping' failed. Missing permissions!",
+            "errorchannel":"admin command 'ping' failed. Wrong Channel!",
+            "log":"admin command 'ping' executed"
+        },
+        "reload":{
+            "text2":"Command `",
+            "text1":"` was reloaded!",
+            "nocommand":"Please provide a command to reload!",
+            "nocommand2":"You didn't pass any command to reload!",
+            "nocommandfound":"No Command found.",
+            "errorperms":"admin command 'reload' failed. Missing permissions!",
+            "errorchannel":"admin command 'reload' failed. Wrong Channel!",
+            "log":"admin command 'reload' executed"
+        },
+        "restart":{
+            "text":"Restarting",
+            "errorperms":"admin command 'restart' failed. Missing permissions!",
+            "errorchannel":"admin command 'restart' failed. Wrong Channel!",
+            "log":"admin command 'restart' executed"
+        },
+        "shutdown":{
+            "text":"Wait.. NO! Not the digital gagball~*muffled sounds*",
+            "errorperms":"admin command 'shutdown' failed. Missing permissions!",
+            "errorchannel":"admin command 'shutdown' failed. Wrong Channel!",
+            "log":"admin command 'shutdown' executed"
+        },
+        "react": {
+            "log":"",
+            "errorperms":"admin command 'react' failed. Missing permissions!",
+            "errorchannel":"admin command 'react' failed. Wrong Channel!"
+        },
+        "console": {
+            "errorperms":"admin command with 'console' in it failed. Missing permissions!",
+            "errorchannel":"admin command with 'console' in it failed. Wrong Channel!"
+        }
+    },
+    "balance":{
+        "text":"Your Meepies balance is: ",
+        "admin":"'s Meepies balance is: ",
+        "error":"command 'balance' failed. Missing usertag",
+        "log":"command 'balance' executed"
+    },
+    "blush":{
+        "text":"You made Ice Blush UwU How could you do that to the green bean? >,<",
+        "nsfw":"Oh~ You made Ice Blush UwU How could you do that to the green bean? ;)",
+        "error":"command 'blush' failed. Missing usertag",
+        "log":"command 'blush' executed"
+    },
+    "german": {
+        "text1":"Ice spoke German once again... ",
+        "text2":" ... NEIN NEIN NEIN :cold_sweat:",
+        "nsfw":" ... how Sexy~",
+        "error":"command 'german' failed. Missing usertag",
+	    "log":"command 'german' executed"
+    },
+    "grouphug":{
+        "text":" gives out the biggest grouphug to everyone! <3",
+        "nsfw":" is up for an *Lovely~* grouphug~",
+        "error":"command 'grouphug' failed. Missing usertag",
+        "log":"command 'grouphug' executed"
+    },
+    "growl":{
+        "text":" growl's at you ",
+        "nsfw":" growl's at you ",
+        "error":"command 'growl' failed. Missing usertag",
+        "log":"command 'growl' executed"
+    },
+    "help": {
+        "log":"command 'help' executed.",
+        "error":"command 'help' failed.",
+        "title":"Commands:",
+        "text1":"**help** - Displays this Help Text.",
+        "text2":"**mcserver** - Minecraft server status.",
+	    "text3":"**blush** - Blush.",
+	    "text4":"**grouphug** - Gives out a BIG Grouphug.",
+	    "text5":"**growl** - Growl at someone.",
+	    "text6":"**hug** - Gives out a hug.",
+	    "text7":"**hydrate** - Tell others to stay Hydrated.",
+	    "text8":"**slap** - Slaps the one you mention with a Newspaperrole.",
+        "text9":"**.** - .",
+        "text11":"**.** - .",
+        "text12":"**.** - .",
+        "text13":"**.** - .",
+        "text14":"**.** - .",
+        "text15":"**.** - .",
+        "text16":"**.** - .",
+        "text17":"**.** - .",
+        "text18":"**.** - .",
+        "text19":"**.** - .",
+        "text20":"**.** - .",
+        "text21":"**.** - .",
+        "text22":"**.** - .",
+        "text23":"**german** - ."
+    },
+    "hug":{
+        "text1":" gives ",
+        "text2":" the biggest hug ever! <3",
+        "nsfw":" is \"*hugging*\" you ",
+        "error":"command 'hug' failed. Missing usertag",
+        "log":"command 'hug' executed"
+    },
+    "hydrate":{
+        "text":"Remember to stay Hydrated! ^^",
+        "nsfw":"Get a Dick and Hydrated!",
+        "error":"command 'hydrate' failed. Missing usertag",
+        "log":"command 'hydrate' executed"
+    },
+    "mc": {
+        "title":"Server Status",
+        "off":"Server offline",
+        "error":"Error getting server status.",
+        "name":"Status for Logic Breakers:",
+        "noplayer":"*No one is playing!*",
+        "playeron":"player(s) online.",
+        "version":"Server version:",
+        "statusfor":"Status for ",
+        "ip":"IP:",
+        "log":"command 'mcserver' executed"
+    },
+    "meep":{
+        "text":"Meep!",
+        "log":"response to word 'meep'"
+    },
+    "sexy":{
+        "test":"Where?! I want to see it! Where is Sexy?!",
+        "log":"response to word 'sexy, butt'"
+    },
+    "slap": {
+	    "is":" is slapping ",
+        "with":" with a newspaper",
+        "nsfwis":"Oho~ ",
+        "nsfwwith":" you are being slaped with an newspaper~ ",
+        "error":"command 'slap' failed. Missing usertag",
+        "log":"command 'slap' executed"
+    },
+    "error": {
+        "taggs":"you need to tag a user in order to use this command!",
+        "nsfwtaggs":"you need to tag a user to have fun with this command~",
+        "chat":"Reply error:",
+        "unhandled":"Unhandled promise rejection:",
+        "websocket":"A Websocket connection encountered an error:",
+        "catch":"error catch",
+        "errorcommand":"There was an error trying to execute this command!"
+    },
+    "prefix": {
+        "tim":"[Tim]",
+        "discord":"[Discord]",
+        "twitch":"[Twitch]",
+        "chat":"[Chat]",
+        "error":"[Error]"
+    },
+    "log": {
+        "ready":"Im ready~!",
+        "login":"Logged in and ready!",
+        "replyerror":"Reply error:",
+        "word":"response to word/s:",
+        "command":"command",
+        "executed":"executed."
+    },
+    "twitch": {
+        "title":"Title",
+        "game":"Game",
+        "status":"Status",
+        "uptime":"Uptime",
+        "livewith":"Live with",
+        "viewers":"viewers",
+        "ended":"Stream has ended",
+        "wentlive":" went live on Twitch!",
+        "islivetitle":"is live on Twitch!",
+        "waslivetitle":"was live on Twitch.",
+        "waslivedesc":"The stream has now ended."
+    }
+}
+
