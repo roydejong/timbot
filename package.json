@@ -1,12 +1,12 @@
 {
   "name": "timbot",
-  "version": "1.2.5",
+  "version": "1.2.7",
   "description": "Discord Tim Bot",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Roy de Jong",
   "license": "MIT",
   "dependencies": {
     "axios": "0.24.0",
