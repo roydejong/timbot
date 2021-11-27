@@ -1,6 +1,6 @@
 {
   "name": "timbot",
-  "version": "1.0.2",
+  "version": "1.2.5",
   "description": "Discord Tim Bot",
   "main": "index.js",
   "scripts": {
@@ -9,13 +9,16 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1",
-    "clevertype": "^2.0.4",
-    "discord.js": "^12.5.3",
-    "feedparser": "^2.2.10",
-    "humanize-duration": "^3.27.0",
-    "mathjs": "^9.4.2",
-    "moment": "^2.29.1",
-    "request": "^2.88.2"
+    "axios": "0.24.0",
+    "better-sqlite3": "7.4.5",
+    "chalk": "4.1.2",
+    "clevertype": "2.0.4",
+    "discord.js": "13.3.1",
+    "dotenv": "10.0.0",
+    "feedparser": "2.2.10",
+    "humanize-duration": "3.27.0",
+    "luxon": "2.1.1",
+    "mathjs": "10.0.0",
+    "request": "2.88.2"
   }
 }
